@@ -29,7 +29,6 @@ const VB_H = 480;
 const PANEL_W = 140;
 const PANEL_H = 340;
 const PANEL_SLANT = 56;   // right edge sits this much LOWER than left edge — creates the parallelogram lean
-const PANEL_RADIUS = 18;
 const PANEL_OFFSET = 110; // center-to-center horizontal step
 const PANEL_TOP = 56;     // top-edge y of leftmost panel
 
@@ -38,27 +37,20 @@ const panelCenters = panels.map(
   (_, i) => VB_W / 2 + (i - (panels.length - 1) / 2) * PANEL_OFFSET
 );
 
-// Generate a parallelogram path with rounded corners
+// Pure parallelogram path — sharp straight corners, no curves
 function panelPath(cx: number) {
   const lX = cx - PANEL_W / 2;
   const rX = cx + PANEL_W / 2;
-  const tlY = PANEL_TOP;                       // top-left
-  const trY = PANEL_TOP + PANEL_SLANT;          // top-right (lower)
-  const blY = PANEL_TOP + PANEL_H;              // bottom-left
-  const brY = PANEL_TOP + PANEL_SLANT + PANEL_H; // bottom-right
-  const r = PANEL_RADIUS;
+  const tlY = PANEL_TOP;                          // top-left
+  const trY = PANEL_TOP + PANEL_SLANT;             // top-right (lower than top-left)
+  const blY = PANEL_TOP + PANEL_H;                 // bottom-left
+  const brY = PANEL_TOP + PANEL_SLANT + PANEL_H;   // bottom-right
 
-  // Trace clockwise from left edge top
   return [
-    `M ${lX + r} ${tlY}`,
-    `L ${rX - r} ${trY}`,
-    `Q ${rX} ${trY}, ${rX} ${trY + r}`,
-    `L ${rX} ${brY - r}`,
-    `Q ${rX} ${brY}, ${rX - r} ${brY}`,
-    `L ${lX + r} ${blY}`,
-    `Q ${lX} ${blY}, ${lX} ${blY - r}`,
-    `L ${lX} ${tlY + r}`,
-    `Q ${lX} ${tlY}, ${lX + r} ${tlY}`,
+    `M ${lX} ${tlY}`,
+    `L ${rX} ${trY}`,
+    `L ${rX} ${brY}`,
+    `L ${lX} ${blY}`,
     "Z",
   ].join(" ");
 }
@@ -86,17 +78,17 @@ const FLOW_Y2 = panelCenterPoint(panels.length - 1).cy;
 type Lane = { y: number; color: string; len: number; dots: number };
 
 const leftLanes: Lane[] = [
-  { y: 100, color: "#22D3EE", len: 100, dots: 2 },
-  { y: 165, color: "#2DD4BF", len: 200, dots: 3 },
-  { y: 250, color: "#22D3EE", len: 260, dots: 3 }, // longest, runs into panels
-  { y: 340, color: "#22C55E", len: 180, dots: 3 },
+  { y: 110, color: "#22D3EE", len: 130, dots: 2 },
+  { y: 170, color: "#2DD4BF", len: 220, dots: 3 },
+  { y: 256, color: "#22D3EE", len: 280, dots: 3 }, // longest — meets the flow line entry
+  { y: 350, color: "#22C55E", len: 200, dots: 3 },
 ];
 
 const rightLanes: Lane[] = [
-  { y: 130, color: "#FF4DCC", len:  80, dots: 2 },
-  { y: 195, color: "#A855F7", len: 150, dots: 3 },
-  { y: 290, color: "#FF4DCC", len: 220, dots: 3 }, // longest
-  { y: 370, color: "#A855F7", len: 110, dots: 2 },
+  { y: 130, color: "#FF4DCC", len: 100, dots: 2 },
+  { y: 200, color: "#A855F7", len: 170, dots: 3 },
+  { y: 296, color: "#FF4DCC", len: 240, dots: 3 }, // longest — flow line exit
+  { y: 380, color: "#A855F7", len: 130, dots: 3 },
 ];
 
 function PipelineCanvas() {
@@ -143,12 +135,13 @@ function PipelineCanvas() {
           </filter>
         </defs>
 
-        {/* ── LEFT INPUT LINES (straight, behind panels) ────────────────── */}
+        {/* ── LEFT INPUT LINES (straight horizontal, with end-cap glow) ──── */}
         {leftLanes.map((lane, i) => {
-          const lineEndX = CLUSTER_LEFT - 8;
+          const lineEndX = CLUSTER_LEFT - 6;
           const lineStartX = lineEndX - lane.len;
+          // Dots distributed: leftmost smallest/dimmest, rightmost (panel side) largest/brightest
           const dotXs = Array.from({ length: lane.dots }).map(
-            (_, j) => lineStartX + 8 + j * ((lane.len - 16) / Math.max(1, lane.dots - 1))
+            (_, j) => lineStartX + 8 + j * ((lane.len - 12) / Math.max(1, lane.dots - 1))
           );
           return (
             <g key={`L${i}`}>
@@ -158,30 +151,33 @@ function PipelineCanvas() {
                 x2={lineEndX}
                 y2={lane.y}
                 stroke={lane.color}
-                strokeWidth="1"
-                strokeOpacity="0.55"
+                strokeWidth="1.25"
+                strokeOpacity="0.65"
               />
-              {dotXs.map((cx, j) => (
-                <circle
-                  key={j}
-                  cx={cx}
-                  cy={lane.y}
-                  r={3.4 - j * 0.3}
-                  fill={lane.color}
-                  filter="url(#nodeGlow)"
-                  opacity={0.45 + j * 0.15}
-                />
-              ))}
+              {dotXs.map((cx, j) => {
+                const isLast = j === lane.dots - 1;
+                return (
+                  <circle
+                    key={j}
+                    cx={cx}
+                    cy={lane.y}
+                    r={isLast ? 4 : 3.2 - (lane.dots - 1 - j) * 0.4}
+                    fill={lane.color}
+                    filter="url(#nodeGlow)"
+                    opacity={0.55 + j * 0.15}
+                  />
+                );
+              })}
             </g>
           );
         })}
 
-        {/* ── RIGHT OUTPUT LINES ────────────────────────────────────────── */}
+        {/* ── RIGHT OUTPUT LINES (mirror — bright dot at panel side) ────── */}
         {rightLanes.map((lane, i) => {
-          const lineStartX = CLUSTER_RIGHT + 8;
+          const lineStartX = CLUSTER_RIGHT + 6;
           const lineEndX = lineStartX + lane.len;
           const dotXs = Array.from({ length: lane.dots }).map(
-            (_, j) => lineStartX + 8 + j * ((lane.len - 16) / Math.max(1, lane.dots - 1))
+            (_, j) => lineStartX + 8 + j * ((lane.len - 12) / Math.max(1, lane.dots - 1))
           );
           return (
             <g key={`R${i}`}>
@@ -191,33 +187,37 @@ function PipelineCanvas() {
                 x2={lineEndX}
                 y2={lane.y}
                 stroke={lane.color}
-                strokeWidth="1"
-                strokeOpacity="0.55"
+                strokeWidth="1.25"
+                strokeOpacity="0.65"
               />
-              {dotXs.map((cx, j) => (
-                <circle
-                  key={j}
-                  cx={cx}
-                  cy={lane.y}
-                  r={3.4 - (lane.dots - 1 - j) * 0.3}
-                  fill={lane.color}
-                  filter="url(#nodeGlow)"
-                  opacity={0.45 + (lane.dots - 1 - j) * 0.15}
-                />
-              ))}
+              {dotXs.map((cx, j) => {
+                const isFirst = j === 0;
+                return (
+                  <circle
+                    key={j}
+                    cx={cx}
+                    cy={lane.y}
+                    r={isFirst ? 4 : 3.2 - j * 0.4}
+                    fill={lane.color}
+                    filter="url(#nodeGlow)"
+                    opacity={0.55 + (lane.dots - 1 - j) * 0.15}
+                  />
+                );
+              })}
             </g>
           );
         })}
 
-        {/* ── CENTER FLOW LINE (slanted to match panel tilt) ──────────── */}
+        {/* ── CENTER FLOW LINE (slanted, matches panel tilt) ──────────── */}
+        {/* Extends past leftmost / rightmost panel by ~half a panel-width to feel "continuous" with the trails */}
         <line
-          x1={FLOW_X1 - PANEL_W / 2 - 8}
-          y1={FLOW_Y1 - PANEL_SLANT / 2 / (panels.length - 1) * 1}
-          x2={FLOW_X2 + PANEL_W / 2 + 8}
-          y2={FLOW_Y2 + PANEL_SLANT / 2 / (panels.length - 1) * 1}
+          x1={FLOW_X1 - PANEL_W / 2 - 6}
+          y1={FLOW_Y1 - PANEL_SLANT / (2 * (panels.length - 1))}
+          x2={FLOW_X2 + PANEL_W / 2 + 6}
+          y2={FLOW_Y2 + PANEL_SLANT / (2 * (panels.length - 1))}
           stroke="url(#flowGradient)"
-          strokeWidth="2"
-          strokeOpacity="0.7"
+          strokeWidth="2.5"
+          strokeOpacity="0.9"
         />
 
         {/* ── PANELS (parallelograms) ─────────────────────────────────── */}
@@ -238,19 +238,37 @@ function PipelineCanvas() {
           />
         ))}
 
-        {/* ── PER-PANEL CENTER NODES (glowing dots on flow line) ──────── */}
+        {/* ── PER-PANEL CENTER NODES — sit on the slanted flow line ───── */}
         {panels.map((p, i) => {
           const { cx, cy } = panelCenterPoint(i);
           return (
-            <circle
-              key={`node${i}`}
-              cx={cx}
-              cy={cy}
-              r="6"
-              fill={p.stroke}
-              filter="url(#nodeGlow)"
-              style={{ filter: `drop-shadow(0 0 6px ${p.stroke})` }}
-            />
+            <g key={`node${i}`}>
+              {/* Outer glow halo */}
+              <circle
+                cx={cx}
+                cy={cy}
+                r="12"
+                fill={p.stroke}
+                opacity="0.18"
+                filter="url(#nodeGlow)"
+              />
+              {/* Solid core */}
+              <circle
+                cx={cx}
+                cy={cy}
+                r="6"
+                fill={p.stroke}
+                filter="url(#nodeGlow)"
+              />
+              {/* Bright center pip */}
+              <circle
+                cx={cx}
+                cy={cy}
+                r="2"
+                fill="#FFFFFF"
+                opacity="0.85"
+              />
+            </g>
           );
         })}
       </svg>
