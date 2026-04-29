@@ -19,29 +19,29 @@ const steps: {
   {
     id: "design",
     num: "01",
-    title: "Design with primitives",
-    body: "Drag inputs, models, tools, branches, and outputs onto a canvas. Every block has a typed contract.",
+    title: "Design with typed primitives",
+    body: "Inputs, models, tools, branches, outputs. Drop them on the canvas. Each block is typed at design time - your editor catches mismatches before the runtime does.",
     accent: "cyan",
   },
   {
     id: "connect",
     num: "02",
-    title: "Connect logic visually",
-    body: "Wire data and decisions between blocks. Branch on output, retry on failure, loop on collections.",
+    title: "Wire logic, not glue code",
+    body: "Branch on classifier output, retry on tool failure, loop over result sets. Every connection is a typed pipe - change a model and the canvas tells you what breaks.",
     accent: "green",
   },
   {
     id: "test",
     num: "03",
-    title: "Watch it run, live",
-    body: "Token streams, traces, costs, and tool calls — observable in real time, not after the fact.",
+    title: "Trace every token, every run",
+    body: "Streams, latencies, costs, tool calls - per block, per execution. Replay any run from any node. Catch the regression before the customer does.",
     accent: "purple",
   },
   {
     id: "deploy",
     num: "04",
-    title: "Ship with one command",
-    body: "Promote to staging or production. Versioned, rollback-ready, callable as a typed API.",
+    title: "Ship with fluxa deploy",
+    body: "One command to staging, one to prod. Versioned, rollback-ready, callable as a typed REST + gRPC API. Roll back a bad release in 4 seconds.",
     accent: "pink",
   },
 ];
@@ -323,7 +323,7 @@ export function Showcase() {
   }, []);
 
   return (
-    <section id="product" ref={sectionRef} className="relative py-section">
+    <section id="product" ref={sectionRef} className="relative py-section overflow-visible">
       <div className="mx-auto max-w-[1200px] px-6">
         <motion.h2
           initial={{ opacity: 0, y: 12 }}
@@ -332,7 +332,7 @@ export function Showcase() {
           transition={{ duration: 0.6, ease }}
           className="font-display font-semibold tracking-[-0.035em] leading-[0.95] text-balance max-w-[820px] text-d2 mb-3xl"
         >
-          One canvas. <span className="text-text-tertiary">Whole lifecycle.</span>
+          One file, four loops. <span className="text-text-tertiary">Design, wire, trace, ship.</span>
         </motion.h2>
 
         {/* Sticky-scroll layout. NO items-start — the left column must stretch
@@ -363,10 +363,9 @@ export function Showcase() {
             </div>
           </div>
 
-          {/* Mobile fallback — non-sticky canvas at top */}
-          <div className="lg:hidden mb-xl">
-            <MockUI activeStep={activeStep} />
-          </div>
+          {/* Mobile: skip the canvas entirely. The MockUI uses fixed pixel
+              chip positions (left-[180px], left-[330px]) that overflow narrow
+              widths. The step copy below carries the section by itself. */}
 
           {/* Right: scrolling steps */}
           <div className="flex flex-col gap-2xl lg:gap-3xl">

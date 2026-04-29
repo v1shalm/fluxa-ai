@@ -10,13 +10,13 @@ const steps = [
     n: "01",
     nodeColor: "cyan" as const,
     title: "Add blocks",
-    body: "Drop primitives onto the canvas — inputs, models, tools, branches, outputs. Each block is typed and inspectable.",
+    body: "Drop primitives onto the canvas - inputs, models, tools, branches, outputs. Each block is typed and inspectable.",
   },
   {
     n: "02",
     nodeColor: "green" as const,
     title: "Connect logic",
-    body: "Wire data and decisions between blocks. Branch on output, retry on failure, loop on collections — all visual.",
+    body: "Wire data and decisions between blocks. Branch on output, retry on failure, loop on collections - all visual.",
   },
   {
     n: "03",
@@ -118,27 +118,57 @@ export function HowItWorks() {
                   transition={{ duration: 0.55, delay: 0.15 + i * 0.18, ease }}
                   className="flex items-center justify-center"
                 >
-                  <div className="relative">
+                  <div className="relative group cursor-default">
                     {/* Number above */}
-                    <span
-                      className="absolute -top-7 left-1/2 -translate-x-1/2 caption whitespace-nowrap"
+                    <motion.span
+                      className="absolute -top-8 left-1/2 -translate-x-1/2 caption whitespace-nowrap opacity-60 group-hover:opacity-100 transition-opacity"
                       style={{ color: colorHex[s.nodeColor] }}
                     >
                       step {s.n}
-                    </span>
-                    <Block color={s.nodeColor} size={64} radius="card" glow />
+                    </motion.span>
+                    
+                    {/* Holographic Node */}
+                    <div className="relative size-16 md:size-20 flex items-center justify-center">
+                      {/* Base glow */}
+                      <div 
+                        className="absolute inset-0 rounded-2xl blur-xl opacity-20 transition-opacity group-hover:opacity-40"
+                        style={{ backgroundColor: colorHex[s.nodeColor] }}
+                      />
+                      
+                      {/* Glass Container */}
+                      <div className="absolute inset-0 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md overflow-hidden">
+                        {/* Shimmer effect */}
+                        <motion.div 
+                          className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0"
+                          animate={{ x: ['-100%', '200%'] }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "linear", delay: i * 0.5 }}
+                        />
+                      </div>
+
+                      {/* Inner Core */}
+                      <motion.div 
+                        className="relative size-5 md:size-6 rounded-lg shadow-lg z-10"
+                        style={{ 
+                          backgroundColor: colorHex[s.nodeColor],
+                          boxShadow: `0 0 20px ${colorHex[s.nodeColor]}aa` 
+                        }}
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: i * 0.3 }}
+                      />
+                    </div>
+
                     {/* Pulse ring */}
                     <motion.span
-                      className="absolute inset-0 rounded-[14px] pointer-events-none"
+                      className="absolute inset-0 rounded-2xl pointer-events-none"
                       style={{ boxShadow: `0 0 0 0 ${colorHex[s.nodeColor]}` }}
                       animate={{
                         boxShadow: [
-                          `0 0 0 0 ${colorHex[s.nodeColor]}55`,
-                          `0 0 0 14px ${colorHex[s.nodeColor]}00`,
+                          `0 0 0 0 ${colorHex[s.nodeColor]}44`,
+                          `0 0 0 20px ${colorHex[s.nodeColor]}00`,
                         ],
                       }}
                       transition={{
-                        duration: 2.2,
+                        duration: 2.5,
                         repeat: Infinity,
                         delay: i * 0.7,
                         ease: "easeOut",

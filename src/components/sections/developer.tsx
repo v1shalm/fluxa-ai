@@ -4,12 +4,12 @@ import { motion } from "framer-motion";
 import { GitHubIcon, TerminalIcon, CheckIcon } from "@/components/primitives/icons";
 
 const features = [
-  "TypeScript SDK + Python client",
-  "API-first — every block is callable",
-  "Git-native: workflows are versioned files",
-  "Export workflows as code — no lock-in",
-  "Self-host runtime in your VPC",
-  "Webhooks, schedules, queue triggers",
+  "TypeScript SDK, Python client, REST API",
+  "Workflows are .ts files — diff, review, revert in Git",
+  "Every block exports as a callable function",
+  "Self-host the runtime in your VPC",
+  "Webhooks, cron, and queue triggers built in",
+  "Export and walk away — no lock-in, ever",
 ];
 
 function CodeBlock() {
@@ -116,8 +116,9 @@ export function Developer() {
             <span className="text-flux-green">not against them.</span>
           </motion.h2>
           <p className="mt-5 text-[16px] leading-[1.6] text-text-secondary text-pretty max-w-[480px]">
-            The canvas is just one view. Every workflow is a typed file you can
-            edit, review, and ship through your normal tooling.
+            The canvas is one view of the truth. The other is a typed .ts file
+            you check into Git, review in PRs, and deploy through the same
+            pipeline as the rest of your code.
           </p>
 
           <ul className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">

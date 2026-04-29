@@ -1,23 +1,58 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useSpring, useTransform, useInView } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
+function Counter({ value, suffix = "" }: { value: string; suffix?: string }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  
+  // Extract number and suffix if not provided
+  const numMatch = value.match(/[\d.]+/);
+  const num = numMatch ? parseFloat(numMatch[0]) : 0;
+  const detectedSuffix = suffix || value.replace(numMatch ? numMatch[0] : "", "");
+  
+  const spring = useSpring(0, {
+    stiffness: 40,
+    damping: 20,
+    restDelta: 0.001
+  });
+  
+  const display = useTransform(spring, (current) => {
+    if (num % 1 === 0) return Math.floor(current).toLocaleString();
+    return current.toFixed(2);
+  });
+
+  useEffect(() => {
+    if (isInView) {
+      spring.set(num);
+    }
+  }, [isInView, num, spring]);
+
+  return (
+    <span ref={ref} className="tabular-nums">
+      <motion.span>{display}</motion.span>
+      {detectedSuffix}
+    </span>
+  );
+}
+
 const stats = [
   {
-    value: "47×",
-    label: "faster prototype-to-production",
+    value: "5min",
+    label: "median time from blank canvas to deployed workflow",
     accent: "#22D3EE", // cyan
   },
   {
     value: "99.99%",
-    label: "runtime uptime SLA",
+    label: "runtime uptime, last 12 months",
     accent: "#00FF66", // green
   },
   {
-    value: "12k+",
-    label: "teams shipping with Fluxa",
+    value: "8247",
+    label: "production teams running Fluxa today",
     accent: "#FF4DCC", // pink
   },
 ];
@@ -33,7 +68,7 @@ export function Stats() {
           transition={{ duration: 0.6, ease }}
           className="font-display font-semibold tracking-[-0.025em] leading-[1.05] text-balance text-d3 max-w-[720px] mb-2xl text-center mx-auto"
         >
-          Measurable results <span className="text-text-tertiary">from day one.</span>
+          Numbers we&apos;d show <span className="text-text-tertiary">a CTO.</span>
         </motion.h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-md gap-y-xl border-t border-ink-line pt-xl">
@@ -53,7 +88,7 @@ export function Stats() {
               />
 
               <div className="font-display font-semibold tracking-[-0.04em] leading-[0.9] text-text-primary num-tabular text-[clamp(40px,5.5vw,72px)]">
-                {s.value}
+                <Counter value={s.value} />
               </div>
               <p className="mt-3 text-base text-text-secondary text-pretty max-w-[220px]">
                 {s.label}
@@ -65,3 +100,4 @@ export function Stats() {
     </section>
   );
 }
+

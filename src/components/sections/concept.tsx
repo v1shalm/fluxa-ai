@@ -9,7 +9,7 @@ const ease = [0.16, 1, 0.3, 1] as const;
 
 type Card = {
   id: string;
-  Icon: React.FC;
+  Icon: React.FC<IconProps>;
   title: string;
   body: string;
   hex: string;
@@ -19,42 +19,44 @@ type Card = {
   blockColor: "cyan" | "green" | "lime" | "yellow" | "pink" | "purple";
 };
 
-const IconBlocks: React.FC = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+type IconProps = { size?: number };
+
+const IconBlocks: React.FC<IconProps> = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="7" rx="1.5" />
     <rect x="14" y="3" width="7" height="7" rx="1.5" />
     <rect x="3" y="14" width="7" height="7" rx="1.5" />
     <rect x="14" y="14" width="7" height="7" rx="1.5" />
   </svg>
 );
-const IconShip: React.FC = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+const IconShip: React.FC<IconProps> = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
     <path d="M5 16l7-7 7 7" /><path d="M12 9v12" /><path d="M5 4h14" />
   </svg>
 );
-const IconConnect: React.FC = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+const IconConnect: React.FC<IconProps> = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
     <rect x="2" y="9" width="6" height="6" rx="1.5" />
     <rect x="16" y="9" width="6" height="6" rx="1.5" />
     <path d="M8 12h8" />
   </svg>
 );
-const IconAgent: React.FC = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+const IconAgent: React.FC<IconProps> = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
     <rect x="4" y="6" width="16" height="12" rx="3" />
     <circle cx="9" cy="12" r="1.25" fill="currentColor" stroke="none" />
     <circle cx="15" cy="12" r="1.25" fill="currentColor" stroke="none" />
     <path d="M12 2v4" />
   </svg>
 );
-const IconObserve: React.FC = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+const IconObserve: React.FC<IconProps> = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="3" />
     <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" />
   </svg>
 );
-const IconShield: React.FC = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+const IconShield: React.FC<IconProps> = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
     <path d="M9 12l2 2 4-4" />
   </svg>
@@ -69,8 +71,8 @@ const cards: Card[] = [
   {
     id: "canvas",
     Icon: IconBlocks,
-    title: "Visual canvas + typed runtime,",
-    body: "with real-time tracing built in.",
+    title: "A canvas, not a notebook.",
+    body: "Wire blocks visually - but the artefact is a typed .ts file you can diff.",
     hex: "#22D3EE",
     bgClass: "bg-flux-cyan/15",
     circle: { x: 10, y: 16.7 }, // (80, 60)
@@ -79,8 +81,8 @@ const cards: Card[] = [
   {
     id: "deploy",
     Icon: IconShip,
-    title: "Drag, drop, deploy.",
-    body: "From idea to production in minutes, not weeks.",
+    title: "Idea to production in 5 minutes.",
+    body: "Not 5 weeks. fluxa deploy --env prod ships a versioned, observable API.",
     hex: "#00FF66",
     bgClass: "bg-flux-green/15",
     circle: { x: 90, y: 19.4 }, // (720, 70)
@@ -89,8 +91,8 @@ const cards: Card[] = [
   {
     id: "multimodel",
     Icon: IconConnect,
-    title: "Multi-model orchestration,",
-    body: "OpenAI, Anthropic, open-weights — one workflow.",
+    title: "Three providers, one workflow.",
+    body: "Anthropic, OpenAI, open-weights via vLLM. Swap models in a click - the contract holds.",
     hex: "#A3FF12",
     bgClass: "bg-flux-lime/15",
     circle: { x: 95, y: 50 }, // (760, 180)
@@ -99,8 +101,8 @@ const cards: Card[] = [
   {
     id: "agents",
     Icon: IconAgent,
-    title: "Agents that remember,",
-    body: "with persistent memory and tool-calling out of the box.",
+    title: "Agents that remember.",
+    body: "Persistent memory, tool calls, multi-turn — no scaffolding to write.",
     hex: "#A855F7",
     bgClass: "bg-flux-purple/20",
     circle: { x: 87.5, y: 80.6 }, // (700, 290)
@@ -109,8 +111,8 @@ const cards: Card[] = [
   {
     id: "observable",
     Icon: IconObserve,
-    title: "Versioned and observable,",
-    body: "every run, every token, fully inspectable.",
+    title: "Every run, replayable.",
+    body: "Token streams, latency, cost — per block. Replay any execution from any node.",
     hex: "#FFD400",
     bgClass: "bg-flux-yellow/15",
     circle: { x: 8.75, y: 80.6 }, // (70, 290)
@@ -119,8 +121,8 @@ const cards: Card[] = [
   {
     id: "secure",
     Icon: IconShield,
-    title: "Self-host when you must.",
-    body: "Your stack, your VPC, your compliance posture.",
+    title: "Your VPC, your data, your rules.",
+    body: "Self-host the runtime in AWS, GCP, or on-prem. SOC 2, HIPAA-ready.",
     hex: "#FF4DCC",
     bgClass: "bg-flux-pink/15",
     circle: { x: 5, y: 50 }, // (40, 180)
@@ -404,25 +406,40 @@ export function Concept() {
                   transition: { duration: 0.35, ease },
                 }}
                 transition={{ duration: 0.7, ease }}
-                className="rounded-card border border-ink-line bg-ink-surface px-md py-3 shadow-lift"
-                style={{ transformOrigin: "center center" }}
+                className="rounded-[20px] border border-white/10 bg-[#121212] p-4 shadow-2xl relative overflow-hidden"
+                style={{ 
+                  transformOrigin: "center center",
+                  boxShadow: `0 0 40px -10px ${card.hex}20, 0 10px 25px -5px rgba(0,0,0,0.5)`
+                }}
               >
+                {/* Subtle accent glow */}
+                <div 
+                  className="absolute -top-10 -right-10 size-20 blur-[30px] opacity-20 pointer-events-none"
+                  style={{ background: card.hex }}
+                />
+
                 <motion.div
-                  animate={{ y: [-2, 2, -2] }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  className="flex items-center gap-3 text-left"
+                  animate={{ y: [-1, 1, -1] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  className="flex items-center gap-4 text-left relative z-10"
                 >
                   <div
-                    className={`size-9 rounded-[10px] inline-flex items-center justify-center shrink-0 ${card.bgClass}`}
-                    style={{ color: card.hex }}
+                    className={`size-11 rounded-[12px] inline-flex items-center justify-center shrink-0 shadow-inner border border-white/5`}
+                    style={{ 
+                      backgroundColor: `${card.hex}15`,
+                      color: card.hex 
+                    }}
                   >
-                    <card.Icon />
+                    {(() => {
+                      const Icon = card.Icon;
+                      return <Icon size={20} />;
+                    })()}
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-base font-semibold text-text-primary leading-snug">
+                  <div className="min-w-0 pr-2">
+                    <div className="text-base font-bold text-text-primary tracking-tight leading-tight mb-0.5">
                       {card.title}
                     </div>
-                    <div className="text-sm text-text-tertiary leading-snug">
+                    <div className="text-sm text-text-secondary leading-normal opacity-80">
                       {card.body}
                     </div>
                   </div>

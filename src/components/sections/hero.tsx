@@ -332,7 +332,7 @@ export function Hero() {
                 transition={{ duration: 0.7, delay: 0.15, ease }}
                 className="block"
               >
-                Build AI workflows
+                The visual canvas
               </motion.span>
               <motion.span
                 initial={{ opacity: 0, y: 16 }}
@@ -340,7 +340,7 @@ export function Hero() {
                 transition={{ duration: 0.7, delay: 0.28, ease }}
                 className="block"
               >
-                in <span className="text-flux-green">full color.</span>
+                for <span className="text-flux-green">AI in production.</span>
               </motion.span>
             </motion.h1>
 
@@ -348,10 +348,11 @@ export function Hero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.45, ease }}
-              className="mt-md max-w-[480px] text-lg text-text-secondary text-pretty"
+              className="mt-md max-w-[520px] text-lg text-text-secondary text-pretty"
             >
-              A visual platform for designing, connecting, and deploying AI
-              systems. From prototype to production without rewrites.
+              Wire LLMs, tools, and data on a typed canvas. Deploy as an
+              observable API - agents, RAG, document parsing, support routing
+              - from one workflow file. No notebooks, no rewrites.
             </motion.p>
           </div>
 

@@ -115,8 +115,8 @@ export function Footer() {
               className="flex flex-col gap-md max-w-[400px]"
             >
               <p className="text-base text-text-secondary text-pretty">
-                Visual AI infrastructure for teams that ship.
-                Free to start, self-hostable when you need to.
+                The visual canvas for production AI workflows.
+                Free until you&apos;re shipping. Self-hostable when compliance asks.
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button variant="primary" size="lg" href="#start">
@@ -147,7 +147,7 @@ export function Footer() {
               <span className="text-h3 font-display font-semibold tracking-[-0.02em] text-text-primary">fluxa</span>
             </div>
             <p className="mt-md text-sm text-text-secondary leading-[1.55] max-w-[280px]">
-              The visual canvas, the typed runtime. One platform for AI you can ship.
+              Visual canvas. Typed runtime. The shortest path from prototype to production AI.
             </p>
 
             {/* Status row */}

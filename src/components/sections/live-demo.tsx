@@ -138,11 +138,12 @@ export function LiveDemo() {
             transition={{ duration: 0.6, ease }}
             className="font-display font-semibold tracking-[-0.03em] leading-[1.02] text-balance text-d2"
           >
-            See your workflows{" "}
-            <span className="text-flux-green">come alive.</span>
+            Trace every run,{" "}
+            <span className="text-flux-green">end to end.</span>
           </motion.h2>
           <p className="mt-md text-base text-text-secondary text-pretty">
-            Every block, every connection, every state — visible in real time.
+            Token streams, tool calls, latency, cost — per block, per execution.
+            Replay any run from any node.
           </p>
         </div>
 
@@ -170,7 +171,7 @@ export function LiveDemo() {
           {/* Main canvas with side panels */}
           <div className="grid grid-cols-[1fr_auto] lg:grid-cols-[1fr_220px]">
             {/* Workflow canvas */}
-            <div className="relative aspect-[1400/460] bg-dot border-r border-ink-line">
+            <div className="relative aspect-[1400/780] md:aspect-[1400/460] bg-dot md:border-r border-ink-line">
               {/* Lane separators — subtle horizontal dividers */}
               <div className="absolute inset-x-0 top-[33%] h-px bg-ink-line/40" aria-hidden />
               <div className="absolute inset-x-0 top-[66%] h-px bg-ink-line/40" aria-hidden />
