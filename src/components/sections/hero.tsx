@@ -28,7 +28,7 @@ const VB_W = 1400;
 const VB_H = 480;
 const PANEL_W = 180;
 const PANEL_H = 340;          // full-size panel height
-const PANEL_SLANT = 95;       // full-size right-edge drop — scales with panel height
+const PANEL_SLANT = 78;       // right-edge drop — gentler tilt matching reference
 const PANEL_RADIUS = 16;      // corner rounding (tangent to each edge — no bumps)
 const PANEL_STROKE = 3;       // outer stroke width
 const PANEL_TOP_FULL = 35;    // top edge y of a full-size panel
@@ -234,8 +234,11 @@ function PipelineCanvas() {
           />
         </g>
 
-        {/* ── PANELS (parallelograms, frosted-glass — gradient + grain overlay + stroke) ── */}
-        {panels.map((p, i) => {
+        {/* ── PANELS (drawn back-to-front: rightmost/purple is at the back of the stack,
+             leftmost/cyan sits on top — pink overlaps purple, etc.) ── */}
+        {panels.map((_, idx) => {
+          const i = panels.length - 1 - idx; // reverse iteration → later in DOM = on top
+          const p = panels[i];
           const d = panelPath(panelCenters[i], PANEL_SCALES[i], PANEL_Y_OFFSETS[i]);
           return (
             <motion.g
