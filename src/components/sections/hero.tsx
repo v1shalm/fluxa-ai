@@ -6,76 +6,124 @@ import { ArrowRight, PlayIcon } from "@/components/primitives/icons";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-// ─── Stacked translucent panels — exactly 7, fixed color order ───────────
+// ─── Stacked translucent parallelogram panels — exactly 7, fixed order ────
 
-type Panel = { color: string };
+type Panel = {
+  stroke: string;       // 2px stroke color
+  fillTop: string;      // gradient stop 0 (lighter, top-left)
+  fillBottom: string;   // gradient stop 1 (darker, bottom-right)
+};
 
 const panels: Panel[] = [
-  { color: "#22D3EE" }, // cyan
-  { color: "#2DD4BF" }, // teal
-  { color: "#22C55E" }, // green
-  { color: "#A3E635" }, // lime
-  { color: "#FACC15" }, // yellow
-  { color: "#FF4DCC" }, // pink
-  { color: "#A855F7" }, // purple
+  { stroke: "#22D3EE", fillTop: "#22D3EE40", fillBottom: "#0E5973" },
+  { stroke: "#2DD4BF", fillTop: "#2DD4BF40", fillBottom: "#0F574F" },
+  { stroke: "#22C55E", fillTop: "#22C55E40", fillBottom: "#0F4D26" },
+  { stroke: "#A3E635", fillTop: "#A3E63540", fillBottom: "#3F540F" },
+  { stroke: "#FACC15", fillTop: "#FACC1540", fillBottom: "#5C4708" },
+  { stroke: "#FF4DCC", fillTop: "#FF4DCC40", fillBottom: "#601E48" },
+  { stroke: "#A855F7", fillTop: "#A855F740", fillBottom: "#3D1A5C" },
 ];
 
-// Conceptual canvas — chosen so panels can be the spec size (200×340),
-// gap-stacked with light overlap, AND leave 160px margins for trails.
-const VB_W = 1700;
-const VB_H = 440;
-
-const PANEL_W = 200;
+const VB_W = 1400;
+const VB_H = 480;
+const PANEL_W = 140;
 const PANEL_H = 340;
-const PANEL_RADIUS = 22;
-const PANEL_TILT = -8;          // uniform right tilt
-const PANEL_OFFSET = 175;       // center-to-center (200 wide, 25px overlap = ~12%)
-const PANEL_TOP = (VB_H - PANEL_H) / 2 + 8;
+const PANEL_SLANT = 56;   // right edge sits this much LOWER than left edge — creates the parallelogram lean
+const PANEL_RADIUS = 18;
+const PANEL_OFFSET = 110; // center-to-center horizontal step
+const PANEL_TOP = 56;     // top-edge y of leftmost panel
 
-// Compute panel center X positions (in viewBox coords)
+// Panel center X positions
 const panelCenters = panels.map(
   (_, i) => VB_W / 2 + (i - (panels.length - 1) / 2) * PANEL_OFFSET
 );
 
-const FLOW_Y = PANEL_TOP + PANEL_H / 2;
+// Generate a parallelogram path with rounded corners
+function panelPath(cx: number) {
+  const lX = cx - PANEL_W / 2;
+  const rX = cx + PANEL_W / 2;
+  const tlY = PANEL_TOP;                       // top-left
+  const trY = PANEL_TOP + PANEL_SLANT;          // top-right (lower)
+  const blY = PANEL_TOP + PANEL_H;              // bottom-left
+  const brY = PANEL_TOP + PANEL_SLANT + PANEL_H; // bottom-right
+  const r = PANEL_RADIUS;
 
-// Cluster bounds (left edge of leftmost panel, right edge of rightmost)
+  // Trace clockwise from left edge top
+  return [
+    `M ${lX + r} ${tlY}`,
+    `L ${rX - r} ${trY}`,
+    `Q ${rX} ${trY}, ${rX} ${trY + r}`,
+    `L ${rX} ${brY - r}`,
+    `Q ${rX} ${brY}, ${rX - r} ${brY}`,
+    `L ${lX + r} ${blY}`,
+    `Q ${lX} ${blY}, ${lX} ${blY - r}`,
+    `L ${lX} ${tlY + r}`,
+    `Q ${lX} ${tlY}, ${lX + r} ${tlY}`,
+    "Z",
+  ].join(" ");
+}
+
+// Each panel's geometric center (post-slant) — the flow line passes through these
+function panelCenterPoint(i: number) {
+  return {
+    cx: panelCenters[i],
+    cy: PANEL_TOP + PANEL_SLANT / 2 + PANEL_H / 2,
+  };
+}
+
+// Cluster bounds (using panel 0 left edge and panel 6 right edge)
 const CLUSTER_LEFT = panelCenters[0] - PANEL_W / 2;
 const CLUSTER_RIGHT = panelCenters[panels.length - 1] + PANEL_W / 2;
 
-// Trail line config — 4 lanes per side, sitting within the ~160px margin
-type Lane = { y: number; color: string };
+// Flow line — slanted to match panel tilt
+// Goes through panel 0 center → panel 6 center
+const FLOW_X1 = panelCenterPoint(0).cx;
+const FLOW_Y1 = panelCenterPoint(0).cy;
+const FLOW_X2 = panelCenterPoint(panels.length - 1).cx;
+const FLOW_Y2 = panelCenterPoint(panels.length - 1).cy;
+
+// Trail lanes — straight horizontal, sit in margins on either side
+type Lane = { y: number; color: string; len: number; dots: number };
 
 const leftLanes: Lane[] = [
-  { y: 110, color: "#22D3EE" }, // cyan
-  { y: 165, color: "#2DD4BF" }, // teal
-  { y: 275, color: "#22C55E" }, // green
-  { y: 330, color: "#22D3EE" }, // cyan
+  { y: 100, color: "#22D3EE", len: 100, dots: 2 },
+  { y: 165, color: "#2DD4BF", len: 200, dots: 3 },
+  { y: 250, color: "#22D3EE", len: 260, dots: 3 }, // longest, runs into panels
+  { y: 340, color: "#22C55E", len: 180, dots: 3 },
 ];
 
 const rightLanes: Lane[] = [
-  { y: 110, color: "#FF4DCC" }, // pink
-  { y: 165, color: "#A855F7" }, // purple
-  { y: 275, color: "#FF4DCC" }, // pink
-  { y: 330, color: "#A855F7" }, // purple
+  { y: 130, color: "#FF4DCC", len:  80, dots: 2 },
+  { y: 195, color: "#A855F7", len: 150, dots: 3 },
+  { y: 290, color: "#FF4DCC", len: 220, dots: 3 }, // longest
+  { y: 370, color: "#A855F7", len: 110, dots: 2 },
 ];
-
-const LINE_LEN = 140;        // length of each trail line
-const LINE_INSET = 12;       // distance from panel cluster edge to line end
 
 function PipelineCanvas() {
   return (
     <div className="relative w-full" style={{ aspectRatio: `${VB_W} / ${VB_H}` }}>
-      {/* SVG: trails + center flow line, sits BEHIND panels */}
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
-        className="absolute inset-0 size-full pointer-events-none"
+        className="absolute inset-0 size-full"
         preserveAspectRatio="xMidYMid meet"
         aria-hidden
       >
         <defs>
-          {/* Full-spectrum gradient for the center flow line */}
-          <linearGradient id="flowGradient" x1="0" x2="1" y1="0" y2="0">
+          {/* Per-panel gradient — diagonal from light top-left to deeper bottom-right */}
+          {panels.map((p, i) => (
+            <linearGradient
+              key={`g${i}`}
+              id={`panelGrad${i}`}
+              x1="0" y1="0" x2="1" y2="1"
+            >
+              <stop offset="0"   stopColor={p.fillTop} />
+              <stop offset="1"   stopColor={p.fillBottom} />
+            </linearGradient>
+          ))}
+
+          {/* Spectrum gradient for the slanted center flow line */}
+          <linearGradient id="flowGradient" gradientUnits="userSpaceOnUse"
+            x1={FLOW_X1} y1={FLOW_Y1} x2={FLOW_X2} y2={FLOW_Y2}>
             <stop offset="0"    stopColor="#22D3EE" />
             <stop offset="0.16" stopColor="#2DD4BF" />
             <stop offset="0.33" stopColor="#22C55E" />
@@ -85,9 +133,9 @@ function PipelineCanvas() {
             <stop offset="1"    stopColor="#A855F7" />
           </linearGradient>
 
-          {/* Soft glow filter for nodes */}
-          <filter id="nodeGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
+          {/* Soft glow for nodes */}
+          <filter id="nodeGlow" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="2.4" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -95,15 +143,13 @@ function PipelineCanvas() {
           </filter>
         </defs>
 
-        {/* ── LEFT INPUT LINES ─────────────────────────────────────────── */}
+        {/* ── LEFT INPUT LINES (straight, behind panels) ────────────────── */}
         {leftLanes.map((lane, i) => {
-          const lineEndX = CLUSTER_LEFT - LINE_INSET;
-          const lineStartX = lineEndX - LINE_LEN;
-          const dotXs = [
-            lineStartX + 14,
-            lineStartX + 70,
-            lineStartX + 126,
-          ];
+          const lineEndX = CLUSTER_LEFT - 8;
+          const lineStartX = lineEndX - lane.len;
+          const dotXs = Array.from({ length: lane.dots }).map(
+            (_, j) => lineStartX + 8 + j * ((lane.len - 16) / Math.max(1, lane.dots - 1))
+          );
           return (
             <g key={`L${i}`}>
               <line
@@ -120,25 +166,23 @@ function PipelineCanvas() {
                   key={j}
                   cx={cx}
                   cy={lane.y}
-                  r={3.4 - j * 0.4}
+                  r={3.4 - j * 0.3}
                   fill={lane.color}
                   filter="url(#nodeGlow)"
-                  opacity={0.5 + j * 0.16}
+                  opacity={0.45 + j * 0.15}
                 />
               ))}
             </g>
           );
         })}
 
-        {/* ── RIGHT OUTPUT LINES ───────────────────────────────────────── */}
+        {/* ── RIGHT OUTPUT LINES ────────────────────────────────────────── */}
         {rightLanes.map((lane, i) => {
-          const lineStartX = CLUSTER_RIGHT + LINE_INSET;
-          const lineEndX = lineStartX + LINE_LEN;
-          const dotXs = [
-            lineStartX + 14,
-            lineStartX + 70,
-            lineStartX + 126,
-          ];
+          const lineStartX = CLUSTER_RIGHT + 8;
+          const lineEndX = lineStartX + lane.len;
+          const dotXs = Array.from({ length: lane.dots }).map(
+            (_, j) => lineStartX + 8 + j * ((lane.len - 16) / Math.max(1, lane.dots - 1))
+          );
           return (
             <g key={`R${i}`}>
               <line
@@ -155,91 +199,61 @@ function PipelineCanvas() {
                   key={j}
                   cx={cx}
                   cy={lane.y}
-                  r={3.4 - (2 - j) * 0.4}
+                  r={3.4 - (lane.dots - 1 - j) * 0.3}
                   fill={lane.color}
                   filter="url(#nodeGlow)"
-                  opacity={0.5 + (2 - j) * 0.16}
+                  opacity={0.45 + (lane.dots - 1 - j) * 0.15}
                 />
               ))}
             </g>
           );
         })}
 
-        {/* ── CENTER FLOW LINE ─────────────────────────────────────────── */}
-        {/* Spectrum line passing through all panels (visible through translucent fills) */}
+        {/* ── CENTER FLOW LINE (slanted to match panel tilt) ──────────── */}
         <line
-          x1={CLUSTER_LEFT - 6}
-          y1={FLOW_Y}
-          x2={CLUSTER_RIGHT + 6}
-          y2={FLOW_Y}
+          x1={FLOW_X1 - PANEL_W / 2 - 8}
+          y1={FLOW_Y1 - PANEL_SLANT / 2 / (panels.length - 1) * 1}
+          x2={FLOW_X2 + PANEL_W / 2 + 8}
+          y2={FLOW_Y2 + PANEL_SLANT / 2 / (panels.length - 1) * 1}
           stroke="url(#flowGradient)"
           strokeWidth="2"
-          strokeOpacity="0.75"
+          strokeOpacity="0.7"
         />
+
+        {/* ── PANELS (parallelograms) ─────────────────────────────────── */}
+        {panels.map((p, i) => (
+          <motion.path
+            key={i}
+            d={panelPath(panelCenters[i])}
+            fill={`url(#panelGrad${i})`}
+            stroke={p.stroke}
+            strokeWidth="2"
+            strokeMiterlimit="10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.85, delay: 0.4 + i * 0.06, ease }}
+            style={{
+              filter: `drop-shadow(0 0 12px ${p.stroke}55)`,
+            }}
+          />
+        ))}
+
+        {/* ── PER-PANEL CENTER NODES (glowing dots on flow line) ──────── */}
+        {panels.map((p, i) => {
+          const { cx, cy } = panelCenterPoint(i);
+          return (
+            <circle
+              key={`node${i}`}
+              cx={cx}
+              cy={cy}
+              r="6"
+              fill={p.stroke}
+              filter="url(#nodeGlow)"
+              style={{ filter: `drop-shadow(0 0 6px ${p.stroke})` }}
+            />
+          );
+        })}
       </svg>
-
-      {/* ── PANELS — DOM elements positioned in % of container ─────────── */}
-      <div
-        className="absolute inset-0"
-        style={{ perspective: "1800px" }}
-      >
-        <div
-          className="relative size-full"
-          style={{ transformStyle: "preserve-3d" }}
-        >
-          {panels.map((p, i) => {
-            const center = (panels.length - 1) / 2;
-            const distFromCenter = Math.abs(i - center);
-            // Slight Z to give center panels prominence, edges recede
-            const translateZ = -distFromCenter * 5;
-            const zIndex = 10 + (panels.length - distFromCenter);
-
-            const leftPct = (panelCenters[i] / VB_W) * 100;
-            const topPct = (PANEL_TOP / VB_H) * 100;
-            const widthPct = (PANEL_W / VB_W) * 100;
-            const heightPct = (PANEL_H / VB_H) * 100;
-
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.9,
-                  delay: 0.4 + i * 0.06,
-                  ease,
-                }}
-                style={{
-                  position: "absolute",
-                  left: `${leftPct}%`,
-                  top: `${topPct}%`,
-                  width: `${widthPct}%`,
-                  height: `${heightPct}%`,
-                  transform: `translateX(-50%) rotateY(${PANEL_TILT}deg) translateZ(${translateZ}px)`,
-                  transformStyle: "preserve-3d",
-                  zIndex,
-                  borderRadius: PANEL_RADIUS,
-                  border: `2px solid ${p.color}`,
-                  background: `linear-gradient(180deg, ${p.color}24 0%, ${p.color}10 100%)`,
-                  boxShadow: `0 0 22px -4px ${p.color}55, inset 0 0 0 1px ${p.color}20`,
-                }}
-              >
-                {/* Center node — at panel's true center, rendered above flow line */}
-                <div
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                  style={{
-                    width: 12,
-                    height: 12,
-                    backgroundColor: p.color,
-                    boxShadow: `0 0 16px ${p.color}, 0 0 6px ${p.color}`,
-                  }}
-                  aria-hidden
-                />
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 }
@@ -253,7 +267,6 @@ export function Hero() {
       className="relative pt-[140px] pb-2xl overflow-hidden"
     >
       <div className="mx-auto max-w-[1280px] px-6">
-        {/* Top row — H1 left, CTAs top-right */}
         <div className="grid lg:grid-cols-[1.4fr_auto] gap-md lg:gap-xl items-start">
           <div>
             <motion.h1
@@ -308,8 +321,6 @@ export function Hero() {
           </motion.div>
         </div>
 
-        {/* Pipeline — wider conceptual canvas (1700) maps to a slightly wider
-            container than the page max-width to give panels their spec size + 160px margins */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -319,7 +330,6 @@ export function Hero() {
           <PipelineCanvas />
         </motion.div>
 
-        {/* Trust strip */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
