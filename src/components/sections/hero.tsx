@@ -196,7 +196,7 @@ function PipelineCanvas() {
               values="0 0 0 0 1
                       0 0 0 0 1
                       0 0 0 0 1
-                      0 0 0 0.55 0"
+                      0 0 0 0.35 0"
             />
           </filter>
           <pattern id="frostPattern" x="0" y="0" width="220" height="220" patternUnits="userSpaceOnUse">
@@ -248,13 +248,13 @@ function PipelineCanvas() {
               transition={{ duration: 0.9, delay: 0.4 + i * 0.07, ease }}
               style={{ filter: `drop-shadow(0 0 14px ${p.stroke}66)` }}
             >
-              {/* Tinted glass body */}
-              <path d={d} fill={`url(#panelGrad${i})`} fillOpacity={0.78} />
-              {/* Frosted grain texture, screen-blended so it lifts the surface */}
+              {/* Tinted glass body — full gradient alpha so colors stay saturated */}
+              <path d={d} fill={`url(#panelGrad${i})`} />
+              {/* Frosted grain — very subtle, just a sheen so it doesn't wash the colour */}
               <path
                 d={d}
                 fill="url(#frostPattern)"
-                opacity={0.32}
+                opacity={0.12}
                 style={{ mixBlendMode: "screen" }}
                 pointerEvents="none"
               />

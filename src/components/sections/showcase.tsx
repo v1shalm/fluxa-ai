@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Block, Bar } from "@/components/primitives/block";
 import { cn } from "@/lib/utils";
 
@@ -67,55 +67,71 @@ function MockUI({ activeStep }: { activeStep: StepId }) {
   const isTest = activeStep === "test";
   const isDeploy = activeStep === "deploy";
 
+  const activeColor = accentHex[activeStep];
+
   return (
-    <div className="relative rounded-card-lg border border-ink-line bg-ink-surface overflow-hidden shadow-lift">
+    <div className="relative rounded-card-lg border border-ink-line bg-ink-surface overflow-hidden shadow-2xl">
       {/* Window chrome */}
-      <div className="flex items-center justify-between px-md py-3 border-b border-ink-line">
-        <div className="flex items-center gap-1.5">
-          <div className="size-2.5 rounded-full bg-ink-line" />
-          <div className="size-2.5 rounded-full bg-ink-line" />
-          <div className="size-2.5 rounded-full bg-ink-line" />
+      <div className="flex items-center justify-between px-md py-3 border-b border-ink-line bg-ink/50 backdrop-blur-sm z-20 relative">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1.5">
+            <div className="size-2.5 rounded-full bg-ink-line" />
+            <div className="size-2.5 rounded-full bg-ink-line" />
+            <div className="size-2.5 rounded-full bg-ink-line" />
+          </div>
+          <div className="ml-3 px-2 py-0.5 rounded-md bg-ink-surface border border-ink-line">
+            <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider">pricing-agent.flow</span>
+          </div>
         </div>
-        <span className="text-xs text-text-tertiary">workflows / pricing-agent</span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-flux-green/10 border border-flux-green/20">
           <span className="size-1.5 rounded-full bg-flux-green animate-status" />
-          <span className="text-2xs text-text-tertiary">running</span>
+          <span className="text-[10px] font-semibold text-flux-green uppercase tracking-tight">live</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-[140px_1fr] min-h-[420px]">
-        {/* Block library — highlight when designing */}
-        <aside
-          className={cn(
-            "border-r border-ink-line p-3 space-y-2 transition-colors duration-500",
-            isDesign && "bg-flux-cyan/[0.04]"
-          )}
-        >
-          <span className="text-2xs text-text-tertiary block px-1 mb-2">primitives</span>
-          {[
-            { c: "cyan", l: "Input" },
-            { c: "green", l: "LLM" },
-            { c: "lime", l: "Tool" },
-            { c: "yellow", l: "Branch" },
-            { c: "pink", l: "Output" },
-            { c: "purple", l: "Memory" },
-          ].map((it, i) => (
-            <motion.div
-              key={it.l}
-              animate={isDesign ? { x: [0, 2, 0], opacity: [0.7, 1, 0.7] } : { x: 0, opacity: 1 }}
-              transition={{ duration: 1.6, repeat: isDesign ? Infinity : 0, delay: i * 0.1 }}
-              className="flex items-center gap-2 px-2 py-1.5 rounded-md cursor-grab"
-            >
-              <Block color={it.c as "cyan"} size={14} radius="block" />
-              <span className="text-xs text-text-secondary">{it.l}</span>
-            </motion.div>
-          ))}
+      <div className="grid grid-cols-[160px_1fr] min-h-[440px] relative">
+        {/* Step-specific global glow */}
+        <motion.div 
+          className="absolute inset-0 pointer-events-none z-10 blur-[80px] opacity-10"
+          animate={{ background: `radial-gradient(circle at 50% 50%, ${activeColor}, transparent 70%)` }}
+          transition={{ duration: 0.8 }}
+        />
+
+        {/* Block library */}
+        <aside className="border-r border-ink-line p-4 space-y-4 bg-ink/30 relative z-20">
+          <div>
+            <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.1em] block mb-3">Nodes</span>
+            <div className="space-y-1">
+              {[
+                { c: "cyan", l: "Input", active: isDesign },
+                { c: "green", l: "LLM", active: isDesign },
+                { c: "lime", l: "Tool", active: isDesign },
+                { c: "yellow", l: "Branch", active: isDesign },
+                { c: "pink", l: "Output", active: isDesign },
+              ].map((it, i) => (
+                <motion.div
+                  key={it.l}
+                  animate={it.active ? { x: 4, opacity: 1 } : { x: 0, opacity: 0.6 }}
+                  className={cn(
+                    "flex items-center gap-3 px-2 py-2 rounded-lg transition-colors cursor-default",
+                    it.active ? "bg-white/5 border border-white/10" : "border border-transparent"
+                  )}
+                >
+                  <Block color={it.c as "cyan"} size={12} radius="block" glow={it.active} />
+                  <span className="text-xs font-medium text-text-secondary">{it.l}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </aside>
 
         {/* Canvas */}
-        <div className="relative bg-ink bg-dot p-md">
+        <div className="relative bg-[#0D0D0D] p-8 overflow-hidden">
+          {/* Subtle grid background */}
+          <div className="absolute inset-0 bg-dot opacity-20" />
+          
           {/* Connector lines */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
+          <svg className="absolute inset-0 size-full pointer-events-none z-10" aria-hidden>
             <defs>
               <linearGradient id="sc-g1" x1="0" x2="1">
                 <stop offset="0" stopColor="#22D3EE" />
@@ -125,124 +141,143 @@ function MockUI({ activeStep }: { activeStep: StepId }) {
                 <stop offset="0" stopColor="#00FF66" />
                 <stop offset="1" stopColor="#A855F7" />
               </linearGradient>
-              <linearGradient id="sc-g3" x1="0" x2="1">
-                <stop offset="0" stopColor="#A855F7" />
-                <stop offset="1" stopColor="#FF4DCC" />
-              </linearGradient>
             </defs>
 
-            {/* Edges that highlight when "connect" is active */}
+            {/* Edges */}
             <motion.path
-              d="M 130 38 C 150 38, 150 38, 170 38"
+              d="M 120 48 C 150 48, 150 48, 180 48"
               stroke="url(#sc-g1)"
-              strokeWidth={isConnect ? 2 : 1.5}
+              strokeWidth={isConnect ? 2.5 : 1.5}
               fill="none"
-              animate={{ opacity: isConnect ? 1 : 0.7 }}
+              animate={{ opacity: isConnect ? 1 : 0.3, pathLength: isConnect ? 1 : 0.8 }}
+              initial={{ pathLength: 0.8 }}
+              transition={{ duration: 0.6 }}
             />
             <motion.path
-              d="M 130 38 C 150 38, 150 100, 170 100"
+              d="M 120 48 C 150 48, 150 110, 180 110"
               stroke="url(#sc-g1)"
-              strokeWidth={isConnect ? 2 : 1.5}
+              strokeWidth={isConnect ? 2.5 : 1.5}
               fill="none"
-              animate={{ opacity: isConnect ? 1 : 0.7 }}
+              animate={{ opacity: isConnect ? 1 : 0.3, pathLength: isConnect ? 1 : 0.8 }}
+              initial={{ pathLength: 0.8 }}
+              transition={{ duration: 0.6 }}
             />
             <motion.path
-              d="M 296 38 C 310 38, 310 70, 326 70"
+              d="M 280 48 C 300 48, 300 80, 320 80"
               stroke="url(#sc-g2)"
-              strokeWidth={isConnect ? 2 : 1.5}
+              strokeWidth={isConnect ? 2.5 : 1.5}
               fill="none"
-              animate={{ opacity: isConnect ? 1 : 0.7 }}
+              animate={{ opacity: isConnect ? 1 : 0.3, pathLength: isConnect ? 1 : 0.8 }}
+              initial={{ pathLength: 0.8 }}
+              transition={{ duration: 0.6 }}
             />
             <motion.path
-              d="M 296 100 C 310 100, 310 70, 326 70"
+              d="M 280 110 C 300 110, 300 80, 320 80"
               stroke="url(#sc-g2)"
-              strokeWidth={isConnect ? 2 : 1.5}
+              strokeWidth={isConnect ? 2.5 : 1.5}
               fill="none"
-              animate={{ opacity: isConnect ? 1 : 0.7 }}
+              animate={{ opacity: isConnect ? 1 : 0.3, pathLength: isConnect ? 1 : 0.8 }}
+              initial={{ pathLength: 0.8 }}
+              transition={{ duration: 0.6 }}
             />
 
-            {/* Traveling pulses appear when "connect" or "test" */}
-            {(isConnect || isTest) && (
+            {/* Pulses */}
+            {(isConnect || isTest || isDeploy) && (
               <>
-                <circle r="3" fill="white">
-                  <animateMotion dur="2s" repeatCount="indefinite"
-                    path="M 130 38 C 150 38, 150 38, 170 38" />
-                </circle>
-                <circle r="3" fill="white">
-                  <animateMotion dur="2s" repeatCount="indefinite" begin="0.5s"
-                    path="M 296 38 C 310 38, 310 70, 326 70" />
-                </circle>
+                <motion.circle r="3" fill="white" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <animateMotion dur="1.8s" repeatCount="indefinite" path="M 120 48 C 150 48, 150 48, 180 48" />
+                </motion.circle>
+                <motion.circle r="3" fill="white" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <animateMotion dur="1.8s" repeatCount="indefinite" begin="0.6s" path="M 280 48 C 300 48, 300 80, 320 80" />
+                </motion.circle>
               </>
             )}
           </svg>
 
           {/* Workflow nodes */}
-          <motion.div
-            className="absolute left-md top-2xl flex items-center gap-2 px-3 py-2 rounded-block-lg bg-ink-surface border border-ink-line"
-            animate={isDesign ? { scale: [1, 1.05, 1] } : { scale: 1 }}
-            transition={{ duration: 1.5, repeat: isDesign ? Infinity : 0 }}
-          >
-            <Block color="cyan" size={14} />
-            <span className="text-xs text-text-primary">user query</span>
-          </motion.div>
-
-          <div className="absolute left-[180px] top-[24px] flex items-center gap-2 px-3 py-2 rounded-block-lg bg-ink-surface border border-flux-green/30">
-            <Block color="green" size={14} glow />
-            <span className="text-xs text-text-primary">classify</span>
-          </div>
-
-          <div className="absolute left-[180px] top-[86px] flex items-center gap-2 px-3 py-2 rounded-block-lg bg-ink-surface border border-ink-line">
-            <Block color="lime" size={14} />
-            <span className="text-xs text-text-primary">fetch ctx</span>
-          </div>
-
-          <div className="absolute left-[336px] top-[56px] flex items-center gap-2 px-3 py-2 rounded-block-lg bg-ink-surface border border-flux-purple/30">
-            <Block color="purple" size={14} />
-            <span className="text-xs text-text-primary">reason</span>
-          </div>
-
-          <motion.div
-            className="absolute right-md bottom-2xl flex items-center gap-2 px-3 py-2 rounded-block-lg bg-ink-surface border border-flux-pink/30"
-            animate={isDeploy ? {
-              boxShadow: [
-                "0 0 0 0 rgba(255,77,204,0.0)",
-                "0 0 0 6px rgba(255,77,204,0.3)",
-                "0 0 0 0 rgba(255,77,204,0.0)",
-              ]
-            } : {}}
-            transition={{ duration: 1.6, repeat: isDeploy ? Infinity : 0 }}
-          >
-            <Block color="pink" size={14} glow />
-            <span className="text-xs text-text-primary">response</span>
-          </motion.div>
-
-          {/* Live readout — visible when testing */}
-          <motion.div
-            animate={{ opacity: isTest || isDeploy ? 1 : 0.4, y: isTest ? 0 : 4 }}
-            transition={{ duration: 0.5, ease }}
-            className="absolute left-[180px] bottom-3 right-[180px] rounded-[10px] bg-ink p-2.5 border border-ink-line"
-          >
-            <div className="text-2xs text-text-tertiary mb-1.5">live stream</div>
-            <Bar width="100%" height={4} from="green" to="purple" flowing />
-            <div className="mt-1.5 flex justify-between text-2xs text-text-tertiary num-tabular">
-              <span>247 tok</span>
-              <span>2.4ms · $0.0003</span>
-            </div>
-          </motion.div>
-
-          {/* Deploy banner — only when "deploy" */}
-          {isDeploy && (
+          <div className="relative z-20 h-full">
             <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.4, ease }}
-              className="absolute right-3 top-3 flex items-center gap-2 px-2.5 py-1.5 rounded-[10px] bg-flux-pink/10 border border-flux-pink/30"
+              className="absolute left-0 top-8 flex items-center gap-3 px-4 py-2.5 rounded-xl bg-ink-surface/80 backdrop-blur-md border border-white/10 shadow-lg"
+              animate={isDesign ? { scale: 1.05, borderColor: "rgba(34,211,238,0.4)" } : { scale: 1, borderColor: "rgba(255,255,255,0.1)" }}
             >
-              <span className="size-1.5 rounded-full bg-flux-pink animate-status" />
-              <span className="text-2xs text-flux-pink font-medium">deployed v2.4.2</span>
+              <Block color="cyan" size={14} glow={isDesign} />
+              <span className="text-xs font-semibold text-text-primary tracking-tight">User Query</span>
             </motion.div>
-          )}
+
+            <motion.div
+              className="absolute left-[180px] top-[10px] flex items-center gap-3 px-4 py-2.5 rounded-xl bg-ink-surface/80 backdrop-blur-md border border-white/10 shadow-lg"
+              animate={isConnect ? { scale: 1.05, borderColor: "rgba(0,255,102,0.4)" } : { scale: 1, borderColor: "rgba(255,255,255,0.1)" }}
+            >
+              <Block color="green" size={14} glow={isConnect} />
+              <span className="text-xs font-semibold text-text-primary tracking-tight">Classify</span>
+            </motion.div>
+
+            <motion.div
+              className="absolute left-[180px] top-[80px] flex items-center gap-3 px-4 py-2.5 rounded-xl bg-ink-surface/80 backdrop-blur-md border border-white/10 shadow-lg"
+              animate={isConnect ? { scale: 1.05, borderColor: "rgba(0,255,102,0.4)" } : { scale: 1, borderColor: "rgba(255,255,255,0.1)" }}
+            >
+              <Block color="lime" size={14} glow={isConnect} />
+              <span className="text-xs font-semibold text-text-primary tracking-tight">Fetch Context</span>
+            </motion.div>
+
+            <motion.div
+              className="absolute left-[330px] top-[45px] flex items-center gap-3 px-4 py-2.5 rounded-xl bg-ink-surface/80 backdrop-blur-md border border-white/10 shadow-lg"
+              animate={isTest ? { scale: 1.05, borderColor: "rgba(168,85,247,0.4)" } : { scale: 1, borderColor: "rgba(255,255,255,0.1)" }}
+            >
+              <Block color="purple" size={14} glow={isTest} />
+              <span className="text-xs font-semibold text-text-primary tracking-tight">Reason</span>
+            </motion.div>
+
+            <motion.div
+              className="absolute right-0 bottom-4 flex items-center gap-3 px-4 py-2.5 rounded-xl bg-ink-surface/80 backdrop-blur-md border border-white/10 shadow-lg"
+              animate={isDeploy ? { 
+                scale: 1.05, 
+                borderColor: "rgba(255,77,204,0.6)",
+                boxShadow: "0 0 30px rgba(255,77,204,0.1)"
+              } : { scale: 1, borderColor: "rgba(255,255,255,0.1)" }}
+            >
+              <Block color="pink" size={14} glow={isDeploy} />
+              <span className="text-xs font-semibold text-text-primary tracking-tight">Response</span>
+            </motion.div>
+
+            {/* Live readout */}
+            <motion.div
+              animate={{ opacity: isTest || isDeploy ? 1 : 0, y: isTest || isDeploy ? 0 : 20 }}
+              transition={{ duration: 0.6, ease }}
+              className="absolute left-[120px] bottom-4 right-[120px] rounded-xl bg-black/60 backdrop-blur-xl p-4 border border-white/10 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest">Analytics</span>
+                <span className="text-[10px] font-bold text-flux-green uppercase">Streaming</span>
+              </div>
+              <Bar width="100%" height={6} from="green" to="purple" flowing />
+              <div className="mt-3 flex justify-between text-[11px] font-medium text-text-secondary num-tabular">
+                <div className="flex gap-3">
+                  <span>2.4ms latency</span>
+                  <span className="text-text-tertiary">|</span>
+                  <span>142 tokens</span>
+                </div>
+                <span className="text-flux-green">$0.00042</span>
+              </div>
+            </motion.div>
+
+            {/* Deploy success toast */}
+            <AnimatePresence>
+              {isDeploy && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50"
+                >
+                  <div className="px-6 py-3 rounded-2xl bg-flux-pink text-black font-bold text-sm shadow-[0_0_50px_rgba(255,77,204,0.4)] flex items-center gap-3">
+                    <span className="size-2 rounded-full bg-black animate-ping" />
+                    Production Deployed
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </div>
@@ -256,30 +291,35 @@ export function Showcase() {
     design: null, connect: null, test: null, deploy: null,
   });
 
-  // Use IntersectionObserver to detect which step is in viewport
+  // Pick the step whose vertical center is closest to the viewport center on
+  // every scroll. IntersectionObserver only fires on intersection-state
+  // changes, so it would stick mid-section; a plain scroll listener tracks
+  // continuously and never gets out of sync with the user's position.
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Pick the entry most centered in viewport
-        const visible = entries.filter((e) => e.isIntersecting);
-        if (visible.length === 0) return;
-        const closest = visible.reduce((best, curr) => {
-          const cBox = curr.boundingClientRect;
-          const bBox = best.boundingClientRect;
-          const cDist = Math.abs(cBox.top + cBox.height / 2 - window.innerHeight / 2);
-          const bDist = Math.abs(bBox.top + bBox.height / 2 - window.innerHeight / 2);
-          return cDist < bDist ? curr : best;
-        });
-        const id = closest.target.getAttribute("data-step") as StepId;
-        if (id) setActiveStep(id);
-      },
-      {
-        rootMargin: "-30% 0px -30% 0px",
-        threshold: [0, 0.3, 0.6, 1],
+    const update = () => {
+      const viewportCenter = window.innerHeight / 2;
+      let closestId: StepId | null = null;
+      let closestDist = Infinity;
+      for (const id of Object.keys(stepRefs.current) as StepId[]) {
+        const el = stepRefs.current[id];
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        const center = rect.top + rect.height / 2;
+        const dist = Math.abs(center - viewportCenter);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestId = id;
+        }
       }
-    );
-    Object.values(stepRefs.current).forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
+      if (closestId) setActiveStep(closestId);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
   }, []);
 
   return (
@@ -296,7 +336,7 @@ export function Showcase() {
         </motion.h2>
 
         {/* Sticky-scroll layout */}
-        <div className="grid lg:grid-cols-[1.1fr_1fr] gap-xl lg:gap-2xl">
+        <div className="grid lg:grid-cols-[1.1fr_1fr] gap-xl lg:gap-2xl items-start">
           {/* Left: sticky canvas */}
           <div className="hidden lg:block">
             <div className="sticky top-32">
