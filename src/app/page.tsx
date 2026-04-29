@@ -40,7 +40,6 @@ export default function Home() {
         <Developer />
         <LiveDemo />
         <Pricing />
-        <FinalCTA />
       </main>
       <Footer />
     </div>

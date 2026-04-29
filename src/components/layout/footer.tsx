@@ -50,62 +50,26 @@ export function Footer() {
           className="absolute inset-0 -z-10 opacity-90"
           style={{
             background:
-              "radial-gradient(ellipse 70% 60% at 50% 100%, rgba(0,255,102,0.05), transparent 60%)",
+              "radial-gradient(circle at 50% 100%, rgba(0,255,102,0.1), transparent 50%), radial-gradient(circle at 50% 0%, rgba(34,211,238,0.05), transparent 40%)",
           }}
           aria-hidden
         />
 
-        {/* Scattered decorative blocks — float subtly */}
-        <motion.div
-          className="absolute pointer-events-none"
-          style={{ left: "8%", top: "30%" }}
-          animate={{ y: [0, -8, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          aria-hidden
-        >
-          <Block color="cyan" size={14} />
-        </motion.div>
-        <motion.div
-          className="absolute pointer-events-none hidden md:block"
-          style={{ right: "12%", top: "20%" }}
-          animate={{ y: [0, 6, 0] }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          aria-hidden
-        >
-          <Block color="green" size={20} radius="block-lg" glow />
-        </motion.div>
-        <motion.div
-          className="absolute pointer-events-none hidden md:block"
-          style={{ left: "20%", bottom: "20%" }}
-          animate={{ y: [0, -10, 0] }}
-          transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          aria-hidden
-        >
-          <Block color="purple" size={16} />
-        </motion.div>
-        <motion.div
-          className="absolute pointer-events-none"
-          style={{ right: "8%", bottom: "30%" }}
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          aria-hidden
-        >
-          <Block color="pink" size={18} radius="block-lg" />
-        </motion.div>
+
 
         <div className="mx-auto max-w-[1200px] px-6 pt-3xl pb-2xl">
           <div className="grid lg:grid-cols-[1.4fr_1fr] gap-xl lg:gap-2xl items-end">
-            <motion.h2
+            <motion.div
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.7, ease }}
-              className="font-display font-semibold tracking-[-0.04em] leading-[0.96] text-balance text-d1"
             >
-              Build in <span className="text-flux-green">color</span>.
-              <br />
-              Ship with <span className="text-flux-cyan">clarity</span>.
-            </motion.h2>
+              <h2 className="font-display font-semibold tracking-[-0.04em] leading-[0.96] text-balance text-d1">
+                Build your first workflow <br />
+                <span className="text-text-tertiary">in the next</span> <span className="text-flux-green">5 minutes.</span>
+              </h2>
+            </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -114,18 +78,24 @@ export function Footer() {
               transition={{ duration: 0.6, delay: 0.15, ease }}
               className="flex flex-col gap-md max-w-[400px]"
             >
-              <p className="text-base text-text-secondary text-pretty">
-                The visual canvas for production AI workflows.
-                Free until you&apos;re shipping. Self-hostable when compliance asks.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="primary" size="lg" href="#start">
-                  Start Building
-                  <ArrowRight size={14} />
-                </Button>
-                <Button variant="secondary" size="lg" href="#docs">
-                  Read the docs
-                </Button>
+              <div className="space-y-4">
+                <p className="text-lg text-text-secondary leading-relaxed text-pretty">
+                  The visual canvas for production AI workflows. 
+                  Free until you&apos;re shipping. Self-hostable when compliance asks.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="primary" size="lg" href="#start" className="h-12 px-6">
+                    Start Building
+                    <ArrowRight size={14} />
+                  </Button>
+                  <Button variant="secondary" size="lg" href="#docs" className="h-12 px-6">
+                    Read the docs
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2 pt-2 text-[10px] font-bold text-text-tertiary uppercase tracking-widest">
+                  <span className="size-1 rounded-full bg-flux-green animate-status" />
+                  Self-serve in 30s
+                </div>
               </div>
             </motion.div>
           </div>

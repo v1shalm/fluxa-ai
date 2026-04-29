@@ -129,7 +129,7 @@ export function LiveDemo() {
       />
       <div className="absolute inset-0 -z-10 bg-grid mask-fade-edges opacity-50" aria-hidden />
 
-      <div className="mx-auto max-w-[1280px] px-6">
+      <div className="mx-auto max-w-[1200px] px-6">
         <div className="text-center max-w-[640px] mx-auto">
           <motion.h2
             initial={{ opacity: 0, y: 12 }}

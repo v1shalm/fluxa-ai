@@ -102,7 +102,7 @@ export function Navbar() {
         className={cn(
           "relative mx-auto max-w-[1200px]",
           "flex items-center justify-between gap-2",
-          "p-2 rounded-[18px]",
+          "py-2 px-4 rounded-[18px]",
           "bg-ink/85 backdrop-blur-xl border border-ink-line",
           "shadow-[0_8px_32px_-12px_rgba(0,0,0,0.5)]"
         )}
@@ -189,51 +189,60 @@ export function Navbar() {
             transition={{ duration: 0.22, ease }}
             onMouseEnter={handleMegaEnter}
             onMouseLeave={handleMegaLeave}
-            className="hidden md:block fixed left-0 right-0 mx-auto max-w-[960px] px-4 top-[68px] z-50"
+            className="hidden md:block fixed left-0 right-0 mx-auto max-w-[1000px] px-4 top-[74px] z-50"
             role="menu"
           >
-            <div className="rounded-[22px] border border-ink-line bg-ink/95 backdrop-blur-xl p-2 shadow-[0_24px_64px_-16px_rgba(0,0,0,0.7)]">
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-12 lg:col-span-8">
-                  <div className="px-3 pt-2 pb-2 flex items-center justify-between">
-                    <span className="text-2xs text-text-tertiary font-medium">Product</span>
-                    <span className="text-2xs text-text-tertiary num-tabular">{productItems.length} modules</span>
+            {/* Invisible hover bridge to prevent menu from closing when moving mouse from nav to menu */}
+            <div className="absolute -top-4 inset-x-0 h-4" />
+
+            <div className="rounded-[24px] border border-ink-line bg-ink/90 backdrop-blur-3xl p-3 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.8)] relative overflow-hidden">
+              {/* Subtle background glow */}
+              <div className="absolute -top-24 -left-24 size-48 bg-flux-cyan/10 blur-[60px] pointer-events-none" />
+              
+              <div className="relative grid grid-cols-12 gap-3">
+                {/* Left: Main Product Grid */}
+                <div className="col-span-12 lg:col-span-8 bg-white/[0.02] rounded-[18px] p-1 border border-white/[0.03]">
+                  <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="size-1.5 rounded-full bg-flux-cyan" />
+                      <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest">Platform Core</span>
+                    </div>
+                    <span className="text-[10px] font-medium text-text-tertiary/60 uppercase tracking-widest">{productItems.length} Modules</span>
                   </div>
-                  <ul className="grid grid-cols-2 gap-1">
+                  
+                  <ul className="grid grid-cols-2 gap-1 pb-1">
                     {productItems.map((item, i) => (
                       <motion.li
                         key={item.title}
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: 0.04 * i, ease }}
+                        initial={{ opacity: 0, x: -4 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.03 * i, ease }}
                       >
                         <a
                           href={item.href}
                           role="menuitem"
                           className={cn(
-                            "group flex items-start gap-3 p-3 rounded-[14px]",
-                            "transition-[background-color] duration-150",
-                            "hover:bg-white/[0.04]"
+                            "group flex items-start gap-4 p-3.5 rounded-[14px]",
+                            "transition-all duration-200",
+                            "hover:bg-white/[0.05] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
                           )}
                         >
                           <span
                             className={cn(
-                              "mt-0.5 size-9 inline-flex items-center justify-center rounded-[8px] shrink-0",
+                              "mt-0.5 size-10 inline-flex items-center justify-center rounded-[10px] shrink-0",
                               accentBg[item.accent],
-                              "transition-transform duration-200 ease-out-quart",
-                              "group-hover:scale-105"
+                              "transition-all duration-300 ease-out-quart",
+                              "group-hover:scale-110 group-hover:shadow-[0_0_15px_-3px_currentColor]"
                             )}
                           >
-                            <item.Icon size={17} />
+                            <item.Icon size={20} />
                           </span>
                           <div className="min-w-0 pt-0.5">
-                            <div className="text-sm font-medium text-text-primary tracking-[-0.005em] flex items-center gap-1.5">
+                            <div className="text-[14px] font-semibold text-text-primary tracking-tight flex items-center gap-2">
                               {item.title}
-                              <span className="inline-flex opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-text-tertiary">
-                                <ArrowRight size={11} />
-                              </span>
+                              <ArrowRight size={10} className="opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0 transition-all duration-300 text-text-tertiary" />
                             </div>
-                            <div className="mt-0.5 text-xs text-text-tertiary leading-[1.4]">
+                            <div className="mt-1 text-[12px] text-text-secondary/70 leading-[1.5] group-hover:text-text-secondary transition-colors">
                               {item.desc}
                             </div>
                           </div>
@@ -243,57 +252,71 @@ export function Navbar() {
                   </ul>
                 </div>
 
-                <div className="col-span-12 lg:col-span-4 flex flex-col gap-2">
+                {/* Right: Featured / Resources */}
+                <div className="col-span-12 lg:col-span-4 flex flex-col gap-3">
                   <motion.a
-                    initial={{ opacity: 0, y: 6 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.18, ease }}
+                    transition={{ duration: 0.3, delay: 0.15, ease }}
                     href="#demo"
                     role="menuitem"
-                    className="group relative flex-1 rounded-[14px] bg-ink-surface border border-ink-line p-4 overflow-hidden hover:border-text-tertiary transition-colors duration-200"
+                    className="group relative flex-1 rounded-[18px] bg-gradient-to-br from-white/[0.04] to-transparent border border-white/[0.05] p-5 overflow-hidden hover:border-flux-cyan/30 transition-all duration-300"
                   >
-                    <div className="absolute right-3 bottom-3 grid grid-cols-3 gap-1 opacity-90" aria-hidden>
-                      <div className="size-3 rounded-[2px] bg-flux-cyan" />
-                      <div className="size-3 rounded-[2px] bg-flux-green" />
-                      <div className="size-3 rounded-[2px] bg-flux-lime" />
-                      <div className="size-3 rounded-[2px] bg-flux-yellow" />
-                      <div className="size-3 rounded-[2px] bg-flux-pink" />
-                      <div className="size-3 rounded-[2px] bg-flux-purple" />
+                    <div className="absolute right-0 top-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
+                      <div className="grid grid-cols-3 gap-1.5" aria-hidden>
+                        {[...Array(6)].map((_, i) => (
+                          <div key={i} className="size-2.5 rounded-[1.5px] bg-white/40" />
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="size-1.5 rounded-full bg-flux-green animate-status" />
-                      <span className="text-2xs text-flux-green font-medium">live</span>
+
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-0.5">
+                        <div className="size-1 rounded-full bg-flux-green animate-pulse" />
+                        <div className="size-1 rounded-full bg-flux-green animate-pulse delay-75" />
+                        <div className="size-1 rounded-full bg-flux-green animate-pulse delay-150" />
+                      </div>
+                      <span className="text-[10px] font-bold text-flux-green uppercase tracking-widest">Environment Live</span>
                     </div>
-                    <div className="mt-3 flex items-center gap-1.5">
-                      <span className="text-sm font-semibold text-text-primary">Try Live demo</span>
-                      <ArrowRight size={11} className="text-text-tertiary group-hover:text-text-primary transition-colors" />
+
+                    <div className="mt-4">
+                      <div className="text-base font-bold text-text-primary flex items-center gap-2">
+                        Try Live Demo
+                        <ArrowRight size={14} className="text-text-tertiary group-hover:translate-x-1 transition-transform" />
+                      </div>
+                      <p className="mt-1.5 text-xs text-text-secondary leading-[1.6]">
+                        Execute a real multi-step workflow directly in your browser. No account required.
+                      </p>
                     </div>
-                    <p className="mt-1 text-xs text-text-tertiary leading-[1.4]">
-                      Run a real workflow in your browser
-                    </p>
                   </motion.a>
 
                   <motion.a
-                    initial={{ opacity: 0, y: 6 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.24, ease }}
+                    transition={{ duration: 0.3, delay: 0.22, ease }}
                     href="#changelog"
                     role="menuitem"
-                    className="group relative flex-1 rounded-[14px] bg-ink-surface border border-ink-line p-4 overflow-hidden hover:border-text-tertiary transition-colors duration-200"
+                    className="group relative rounded-[18px] bg-white/[0.02] border border-white/[0.05] p-5 overflow-hidden hover:bg-white/[0.04] transition-all duration-300"
                   >
-                    <div
-                      className="absolute right-3 bottom-3 h-1.5 w-[80px] rounded-full opacity-90"
-                      style={{ background: "linear-gradient(90deg, #00FF66, #A3FF12)" }}
-                      aria-hidden
-                    />
-                    <span className="text-2xs text-text-tertiary num-tabular">v2.4.2</span>
-                    <div className="mt-3 flex items-center gap-1.5">
-                      <span className="text-sm font-semibold text-text-primary">Changelog</span>
-                      <ArrowRight size={11} className="text-text-tertiary group-hover:text-text-primary transition-colors" />
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-text-tertiary uppercase tracking-wider">Latest Update</span>
+                      <span className="text-[10px] font-bold text-text-tertiary/40 num-tabular">v2.4.2</span>
                     </div>
-                    <p className="mt-1 text-xs text-text-tertiary leading-[1.4]">
-                      What shipped this week
+                    
+                    <div className="text-base font-bold text-text-primary flex items-center gap-2">
+                      Changelog
+                      <ArrowRight size={14} className="text-text-tertiary group-hover:translate-x-1 transition-transform" />
+                    </div>
+                    <p className="mt-1.5 text-xs text-text-secondary leading-[1.6]">
+                      What shipped this week: New vector primitives and gRPC support.
                     </p>
+
+                    <div className="mt-4 h-1 w-full rounded-full bg-white/5 overflow-hidden">
+                      <div 
+                        className="h-full w-2/3 rounded-full"
+                        style={{ background: "linear-gradient(90deg, #00FF66, #22D3EE)" }}
+                      />
+                    </div>
                   </motion.a>
                 </div>
               </div>
