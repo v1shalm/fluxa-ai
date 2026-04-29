@@ -43,15 +43,16 @@ const PANEL_SCALES = [0.82, 0.92, 1.0, 1.0, 1.0, 0.94, 0.94];
 // recessed/floating above the stack rather than sitting flush on the axis.
 const PANEL_Y_OFFSETS = [0, 0, 0, 0, 0, 0, -14];
 
-// Variable spacing — gap on the left, increasing overlap moving right.
-// Each value is the center-to-center distance between the indexed panel and the next.
+// Variable spacing — gentle progression. Each tile overlaps only its immediate
+// neighbour (~25-35% of panel width); tiles never stack 3-deep at the right.
+// Center-to-center distance between the indexed panel and the next.
 const PAIR_OFFSETS = [
-  190, // 1→2: ~10px gap (panels just barely separated)
-  155, // 2→3: 25px overlap
-  130, // 3→4: 50px overlap
-  110, // 4→5: 70px overlap
-  95,  // 5→6: 85px overlap
-  60,  // 6→7: pushed deeper into the stack (was 82) — panel 7 sits further back
+  158, // 1→2: 22px overlap (light kiss)
+  142, // 2→3: 38px overlap
+  132, // 3→4: 48px overlap
+  126, // 4→5: 54px overlap
+  124, // 5→6: 56px overlap
+  118, // 6→7: 62px overlap (still slightly tighter — panel 7 reads as "back")
 ];
 
 // Cumulative panel centers, then re-centered horizontally in the viewBox
