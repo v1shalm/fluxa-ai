@@ -20,57 +20,53 @@ const panels: Panel[] = [
   { color: "#A855F7" }, // purple
 ];
 
-// SVG viewBox dimensions for the entire visual area (1280×420 conceptual canvas)
-const VB_W = 1280;
-const VB_H = 420;
+// Conceptual canvas — chosen so panels can be the spec size (200×340),
+// gap-stacked with light overlap, AND leave 160px margins for trails.
+const VB_W = 1700;
+const VB_H = 440;
 
-// Panel layout — placed in the center horizontally, with horizontal offset
-// between successive panels. Center-of-panels horizontal axis = VB_W/2.
 const PANEL_W = 200;
 const PANEL_H = 340;
 const PANEL_RADIUS = 22;
-const PANEL_TILT = -10; // uniform right tilt, degrees
-const PANEL_OFFSET = 90; // center-to-center horizontal distance
-const PANEL_TOP = (VB_H - PANEL_H) / 2 + 12; // slightly below midline (optical)
+const PANEL_TILT = -8;          // uniform right tilt
+const PANEL_OFFSET = 175;       // center-to-center (200 wide, 25px overlap = ~12%)
+const PANEL_TOP = (VB_H - PANEL_H) / 2 + 8;
 
-// Compute X positions of panel centers (in viewBox coords)
-const panelCenters = panels.map((_, i) => {
-  return VB_W / 2 + (i - (panels.length - 1) / 2) * PANEL_OFFSET;
-});
+// Compute panel center X positions (in viewBox coords)
+const panelCenters = panels.map(
+  (_, i) => VB_W / 2 + (i - (panels.length - 1) / 2) * PANEL_OFFSET
+);
 
-// Center flow line vertical position (panel center)
 const FLOW_Y = PANEL_TOP + PANEL_H / 2;
 
-// Left + right line lanes (4 each)
+// Cluster bounds (left edge of leftmost panel, right edge of rightmost)
+const CLUSTER_LEFT = panelCenters[0] - PANEL_W / 2;
+const CLUSTER_RIGHT = panelCenters[panels.length - 1] + PANEL_W / 2;
+
+// Trail line config — 4 lanes per side, sitting within the ~160px margin
 type Lane = { y: number; color: string };
 
 const leftLanes: Lane[] = [
-  { y: 100, color: "#22D3EE" }, // cyan
+  { y: 110, color: "#22D3EE" }, // cyan
   { y: 165, color: "#2DD4BF" }, // teal
-  { y: 280, color: "#22C55E" }, // green
-  { y: 340, color: "#22D3EE" }, // cyan again
+  { y: 275, color: "#22C55E" }, // green
+  { y: 330, color: "#22D3EE" }, // cyan
 ];
 
 const rightLanes: Lane[] = [
-  { y: 100, color: "#FF4DCC" }, // pink
+  { y: 110, color: "#FF4DCC" }, // pink
   { y: 165, color: "#A855F7" }, // purple
-  { y: 280, color: "#FF4DCC" }, // pink
-  { y: 340, color: "#A855F7" }, // purple
+  { y: 275, color: "#FF4DCC" }, // pink
+  { y: 330, color: "#A855F7" }, // purple
 ];
 
-// Where input lines end (left panel area boundary) / output lines begin
-const PANELS_LEFT_EDGE = panelCenters[0] - PANEL_W / 2; // ~316
-const PANELS_RIGHT_EDGE = panelCenters[panels.length - 1] + PANEL_W / 2; // ~964
+const LINE_LEN = 140;        // length of each trail line
+const LINE_INSET = 12;       // distance from panel cluster edge to line end
 
 function PipelineCanvas() {
   return (
     <div className="relative w-full" style={{ aspectRatio: `${VB_W} / ${VB_H}` }}>
-      {/*
-        Single SVG holds: left input lines, right output lines, and center flow
-        line. The center flow line sits BEHIND panels (visible through the
-        translucent fill). Panel-center glowing nodes are rendered as DOM
-        elements over each panel for crisp glows.
-      */}
+      {/* SVG: trails + center flow line, sits BEHIND panels */}
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         className="absolute inset-0 size-full pointer-events-none"
@@ -78,7 +74,7 @@ function PipelineCanvas() {
         aria-hidden
       >
         <defs>
-          {/* Spectrum gradient for the center flow line */}
+          {/* Full-spectrum gradient for the center flow line */}
           <linearGradient id="flowGradient" x1="0" x2="1" y1="0" y2="0">
             <stop offset="0"    stopColor="#22D3EE" />
             <stop offset="0.16" stopColor="#2DD4BF" />
@@ -89,21 +85,9 @@ function PipelineCanvas() {
             <stop offset="1"    stopColor="#A855F7" />
           </linearGradient>
 
-          {/* Soft fade masks for line ends */}
-          <linearGradient id="leftFade" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0"   stopColor="white" stopOpacity="0" />
-            <stop offset="0.4" stopColor="white" stopOpacity="0.8" />
-            <stop offset="1"   stopColor="white" stopOpacity="1" />
-          </linearGradient>
-          <linearGradient id="rightFade" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0"   stopColor="white" stopOpacity="1" />
-            <stop offset="0.6" stopColor="white" stopOpacity="0.8" />
-            <stop offset="1"   stopColor="white" stopOpacity="0" />
-          </linearGradient>
-
-          {/* Glow filter for nodes */}
+          {/* Soft glow filter for nodes */}
           <filter id="nodeGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -113,17 +97,15 @@ function PipelineCanvas() {
 
         {/* ── LEFT INPUT LINES ─────────────────────────────────────────── */}
         {leftLanes.map((lane, i) => {
-          const lineEndX = PANELS_LEFT_EDGE - 8;
-          const lineStartX = lineEndX - 200; // ~200px line on the left
-          // Static dot positions along the line (3 per lane)
+          const lineEndX = CLUSTER_LEFT - LINE_INSET;
+          const lineStartX = lineEndX - LINE_LEN;
           const dotXs = [
-            lineStartX + 18,
-            lineStartX + 90,
-            lineStartX + 168,
+            lineStartX + 14,
+            lineStartX + 70,
+            lineStartX + 126,
           ];
           return (
             <g key={`L${i}`}>
-              {/* Faded thin line */}
               <line
                 x1={lineStartX}
                 y1={lane.y}
@@ -131,18 +113,17 @@ function PipelineCanvas() {
                 y2={lane.y}
                 stroke={lane.color}
                 strokeWidth="1"
-                strokeOpacity="0.5"
+                strokeOpacity="0.55"
               />
-              {/* Glowing nodes (static) */}
               {dotXs.map((cx, j) => (
                 <circle
                   key={j}
                   cx={cx}
                   cy={lane.y}
-                  r={3.5 - j * 0.4}
+                  r={3.4 - j * 0.4}
                   fill={lane.color}
                   filter="url(#nodeGlow)"
-                  opacity={0.45 + j * 0.18}
+                  opacity={0.5 + j * 0.16}
                 />
               ))}
             </g>
@@ -151,12 +132,12 @@ function PipelineCanvas() {
 
         {/* ── RIGHT OUTPUT LINES ───────────────────────────────────────── */}
         {rightLanes.map((lane, i) => {
-          const lineStartX = PANELS_RIGHT_EDGE + 8;
-          const lineEndX = lineStartX + 200;
+          const lineStartX = CLUSTER_RIGHT + LINE_INSET;
+          const lineEndX = lineStartX + LINE_LEN;
           const dotXs = [
-            lineStartX + 32,
-            lineStartX + 110,
-            lineStartX + 182,
+            lineStartX + 14,
+            lineStartX + 70,
+            lineStartX + 126,
           ];
           return (
             <g key={`R${i}`}>
@@ -167,17 +148,17 @@ function PipelineCanvas() {
                 y2={lane.y}
                 stroke={lane.color}
                 strokeWidth="1"
-                strokeOpacity="0.5"
+                strokeOpacity="0.55"
               />
               {dotXs.map((cx, j) => (
                 <circle
                   key={j}
                   cx={cx}
                   cy={lane.y}
-                  r={3.5 - (2 - j) * 0.4}
+                  r={3.4 - (2 - j) * 0.4}
                   fill={lane.color}
                   filter="url(#nodeGlow)"
-                  opacity={0.45 + (2 - j) * 0.18}
+                  opacity={0.5 + (2 - j) * 0.16}
                 />
               ))}
             </g>
@@ -185,22 +166,22 @@ function PipelineCanvas() {
         })}
 
         {/* ── CENTER FLOW LINE ─────────────────────────────────────────── */}
-        {/* Faint spectrum line behind panels — visible through translucent fill */}
+        {/* Spectrum line passing through all panels (visible through translucent fills) */}
         <line
-          x1={PANELS_LEFT_EDGE - 12}
+          x1={CLUSTER_LEFT - 6}
           y1={FLOW_Y}
-          x2={PANELS_RIGHT_EDGE + 12}
+          x2={CLUSTER_RIGHT + 6}
           y2={FLOW_Y}
           stroke="url(#flowGradient)"
-          strokeWidth="1.5"
-          strokeOpacity="0.55"
+          strokeWidth="2"
+          strokeOpacity="0.75"
         />
       </svg>
 
-      {/* ── PANELS (3D stacked) ───────────────────────────────────────── */}
+      {/* ── PANELS — DOM elements positioned in % of container ─────────── */}
       <div
         className="absolute inset-0"
-        style={{ perspective: "1600px" }}
+        style={{ perspective: "1800px" }}
       >
         <div
           className="relative size-full"
@@ -209,10 +190,10 @@ function PipelineCanvas() {
           {panels.map((p, i) => {
             const center = (panels.length - 1) / 2;
             const distFromCenter = Math.abs(i - center);
-            // Center panels slightly forward; edges recede
-            const translateZ = -distFromCenter * 6;
-            // z-index higher for center panels, so they overlap edges
+            // Slight Z to give center panels prominence, edges recede
+            const translateZ = -distFromCenter * 5;
             const zIndex = 10 + (panels.length - distFromCenter);
+
             const leftPct = (panelCenters[i] / VB_W) * 100;
             const topPct = (PANEL_TOP / VB_H) * 100;
             const widthPct = (PANEL_W / VB_W) * 100;
@@ -221,11 +202,11 @@ function PipelineCanvas() {
             return (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
                   duration: 0.9,
-                  delay: 0.4 + i * 0.07,
+                  delay: 0.4 + i * 0.06,
                   ease,
                 }}
                 style={{
@@ -239,18 +220,18 @@ function PipelineCanvas() {
                   zIndex,
                   borderRadius: PANEL_RADIUS,
                   border: `2px solid ${p.color}`,
-                  background: `linear-gradient(180deg, ${p.color}1F 0%, ${p.color}0E 100%)`,
-                  boxShadow: `0 0 20px -6px ${p.color}66, inset 0 0 0 1px ${p.color}1A`,
+                  background: `linear-gradient(180deg, ${p.color}24 0%, ${p.color}10 100%)`,
+                  boxShadow: `0 0 22px -4px ${p.color}55, inset 0 0 0 1px ${p.color}20`,
                 }}
               >
-                {/* Center node (the one along the flow line, inside each panel) */}
+                {/* Center node — at panel's true center, rendered above flow line */}
                 <div
                   className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
                   style={{
-                    width: 10,
-                    height: 10,
+                    width: 12,
+                    height: 12,
                     backgroundColor: p.color,
-                    boxShadow: `0 0 14px ${p.color}, 0 0 4px ${p.color}`,
+                    boxShadow: `0 0 16px ${p.color}, 0 0 6px ${p.color}`,
                   }}
                   aria-hidden
                 />
@@ -327,13 +308,13 @@ export function Hero() {
           </motion.div>
         </div>
 
-        {/* Pipeline panel visual — centered, with ~160px horizontal margin built in via container width */}
+        {/* Pipeline — wider conceptual canvas (1700) maps to a slightly wider
+            container than the page max-width to give panels their spec size + 160px margins */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.6, ease }}
           className="mt-2xl mx-auto"
-          style={{ maxWidth: "1280px" }}
         >
           <PipelineCanvas />
         </motion.div>
