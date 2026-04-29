@@ -28,15 +28,15 @@ const VB_W = 1400;
 const VB_H = 480;
 const PANEL_W = 180;
 const PANEL_H = 340;          // full-size panel height
-const PANEL_SLANT = 70;       // full-size right-edge drop — scales with panel height
+const PANEL_SLANT = 95;       // full-size right-edge drop — scales with panel height (bumped for stronger lean to match reference)
 const PANEL_RADIUS = 8;       // corner rounding
 const PANEL_TOP_FULL = 35;    // top edge y of a full-size panel
 
 // Shared horizontal axis — every panel's geometric center sits on this line
 const AXIS_Y = PANEL_TOP_FULL + (PANEL_H + PANEL_SLANT) / 2;
 
-// Per-panel size scale: small → grow → full (3,4,5) → shrink → smaller
-const PANEL_SCALES = [0.82, 0.92, 1.0, 1.0, 1.0, 0.94, 0.86];
+// Per-panel size scale: small → grow → full (3,4,5) → shrink (panels 6 and 7 same size)
+const PANEL_SCALES = [0.82, 0.92, 1.0, 1.0, 1.0, 0.94, 0.94];
 
 // Variable spacing — gap on the left, increasing overlap moving right.
 // Each value is the center-to-center distance between the indexed panel and the next.
