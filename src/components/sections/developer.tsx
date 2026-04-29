@@ -103,25 +103,38 @@ export function Developer() {
         }}
         aria-hidden
       />
-      <div className="mx-auto max-w-[1200px] px-6 grid lg:grid-cols-[1fr_1.15fr] gap-12 lg:gap-16 items-center">
-        <div>
+      <div className="mx-auto max-w-[1200px] px-6 grid lg:grid-cols-[1fr_1.15fr] gap-12 lg:gap-16 items-start">
+        <div className="flex flex-col">
+          {/* Eyebrow — small anchor that establishes the section's start. */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="inline-flex items-center gap-2 self-start"
+          >
+            <span className="size-1.5 rounded-full bg-flux-green animate-status" />
+            <span className="caption text-flux-green tracking-wider uppercase">developer experience</span>
+          </motion.div>
+
           <motion.h2
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-3 text-display font-semibold text-balance"
+            className="mt-md text-display font-semibold text-balance"
           >
             Built for engineers,{" "}
             <span className="text-flux-green">not against them.</span>
           </motion.h2>
-          <p className="mt-5 text-[16px] leading-[1.6] text-text-secondary text-pretty max-w-[480px]">
+          <p className="mt-sm text-[16px] leading-[1.6] text-text-secondary text-pretty max-w-[480px]">
             The canvas is one view of the truth. The other is a typed .ts file
             you check into Git, review in PRs, and deploy through the same
             pipeline as the rest of your code.
           </p>
 
-          <ul className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
+          {/* Generous gap before the list — tells the eye a new beat starts here. */}
+          <ul className="mt-xl grid grid-cols-1 sm:grid-cols-2 gap-x-lg gap-y-sm">
             {features.map((f, i) => (
               <motion.li
                 key={f}
@@ -129,9 +142,9 @@ export function Developer() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.4, delay: 0.05 * i, ease: [0.16, 1, 0.3, 1] }}
-                className="flex items-center gap-2.5 text-[14.5px] text-text-secondary"
+                className="flex items-start gap-3 text-[14.5px] leading-[1.5] text-text-secondary"
               >
-                <span className="inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] bg-flux-green/15 text-flux-green">
+                <span className="mt-[3px] inline-flex size-[18px] shrink-0 items-center justify-center rounded-[5px] bg-flux-green/15 text-flux-green">
                   <CheckIcon size={11} />
                 </span>
                 {f}
@@ -139,7 +152,8 @@ export function Developer() {
             ))}
           </ul>
 
-          <div className="mt-10 flex items-center gap-3">
+          {/* CTAs — generous gap above (different beat from the list). */}
+          <div className="mt-xl flex items-center gap-3">
             <a
               href="#docs"
               className="inline-flex items-center gap-2 h-10 px-4 rounded-[10px] bg-ink-surface border border-ink-line hover:border-text-secondary transition-colors text-[14px]"
@@ -153,9 +167,38 @@ export function Developer() {
             >
               <GitHubIcon size={14} />
               github.com/fluxa
-              <span className="ml-1 caption text-text-tertiary num-tabular">12.4k ★</span>
             </a>
           </div>
+
+          {/* Stats strip — anchors the bottom of the column with real info,
+              fills the height that the tall code block creates on the right.
+              Hairline separator + tight spacing within strip = tight beat to close. */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-2xl pt-md border-t border-ink-line flex flex-wrap items-baseline gap-x-xl gap-y-xs"
+          >
+            <div>
+              <div className="caption text-text-tertiary">stars</div>
+              <div className="mt-1 text-[20px] font-display font-semibold text-text-primary num-tabular tracking-[-0.02em]">
+                12,481 <span className="text-flux-green">★</span>
+              </div>
+            </div>
+            <div>
+              <div className="caption text-text-tertiary">latest</div>
+              <div className="mt-1 text-[20px] font-display font-semibold text-text-primary num-tabular tracking-[-0.02em]">
+                v2.4.1
+              </div>
+            </div>
+            <div>
+              <div className="caption text-text-tertiary">license</div>
+              <div className="mt-1 text-[20px] font-display font-semibold text-text-primary tracking-[-0.02em]">
+                MIT
+              </div>
+            </div>
+          </motion.div>
         </div>
 
         <motion.div
