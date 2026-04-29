@@ -47,7 +47,7 @@ const PANEL_Y_OFFSETS = [0, 0, 0, 0, 0, 0, -14];
 // neighbour (~25-35% of panel width); tiles never stack 3-deep at the right.
 // Center-to-center distance between the indexed panel and the next.
 const PAIR_OFFSETS = [
-  158, // 1→2: 22px overlap (light kiss)
+  198, // 1→2: 18px GAP — first tile stands clear of the rest, like reference
   142, // 2→3: 38px overlap
   132, // 3→4: 48px overlap
   126, // 4→5: 54px overlap
