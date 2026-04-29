@@ -28,8 +28,9 @@ const VB_W = 1400;
 const VB_H = 480;
 const PANEL_W = 180;
 const PANEL_H = 340;          // full-size panel height
-const PANEL_SLANT = 95;       // full-size right-edge drop — scales with panel height (bumped for stronger lean to match reference)
-const PANEL_RADIUS = 8;       // corner rounding
+const PANEL_SLANT = 95;       // full-size right-edge drop — scales with panel height
+const PANEL_RADIUS = 16;      // corner rounding (tangent to each edge — no bumps)
+const PANEL_STROKE = 3;       // outer stroke width
 const PANEL_TOP_FULL = 35;    // top edge y of a full-size panel
 
 // Shared horizontal axis — every panel's geometric center sits on this line
@@ -58,7 +59,10 @@ const panelCenters: number[] = (() => {
   return positions.map((p) => p + offset);
 })();
 
-// Parallelogram path with rounded corners (8px) — straight edges, gentle corner curves
+// Parallelogram path with TANGENT rounded corners — each curve starts/ends along
+// its actual adjacent edge (not cardinal axes), so slanted edges flow smoothly into
+// the corner curve. This eliminates the visible "bump" the cardinal-axis approach
+// produced where the slanted top/bottom met the rounded vertical sides.
 function panelPath(cx: number, scale: number) {
   const w = PANEL_W;
   const h = PANEL_H * scale;
@@ -67,24 +71,50 @@ function panelPath(cx: number, scale: number) {
 
   const lX = cx - w / 2;
   const rX = cx + w / 2;
-  // Center each panel vertically on AXIS_Y regardless of scale
   const tlY = AXIS_Y - h / 2 - slant / 2;
   const trY = tlY + slant;
   const blY = tlY + h;
   const brY = trY + h;
 
-  return [
-    `M ${lX + r} ${tlY}`,
-    `L ${rX - r} ${trY}`,
-    `Q ${rX} ${trY}, ${rX} ${trY + r}`,
-    `L ${rX} ${brY - r}`,
-    `Q ${rX} ${brY}, ${rX - r} ${brY}`,
-    `L ${lX + r} ${blY}`,
-    `Q ${lX} ${blY}, ${lX} ${blY - r}`,
-    `L ${lX} ${tlY + r}`,
-    `Q ${lX} ${tlY}, ${lX + r} ${tlY}`,
-    "Z",
-  ].join(" ");
+  // Corners in clockwise order
+  const C = [
+    { x: lX, y: tlY }, // 0: TL
+    { x: rX, y: trY }, // 1: TR
+    { x: rX, y: brY }, // 2: BR
+    { x: lX, y: blY }, // 3: BL
+  ];
+
+  // Unit vector from a→b
+  const u = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.hypot(dx, dy) || 1;
+    return { x: dx / len, y: dy / len };
+  };
+
+  // For each corner: tangent points r away along each adjacent edge
+  const n = C.length;
+  const T = C.map((c, i) => {
+    const prev = C[(i - 1 + n) % n];
+    const next = C[(i + 1) % n];
+    const inDir = u(c, prev);   // back-along-incoming
+    const outDir = u(c, next);  // forward-along-outgoing
+    return {
+      start: { x: c.x + inDir.x * r, y: c.y + inDir.y * r },
+      end:   { x: c.x + outDir.x * r, y: c.y + outDir.y * r },
+      ctrl:  c,
+    };
+  });
+
+  const parts: string[] = [];
+  parts.push(`M ${T[0].end.x} ${T[0].end.y}`);
+  for (let i = 0; i < n; i++) {
+    const next = (i + 1) % n;
+    parts.push(`L ${T[next].start.x} ${T[next].start.y}`);
+    parts.push(`Q ${T[next].ctrl.x} ${T[next].ctrl.y}, ${T[next].end.x} ${T[next].end.y}`);
+  }
+  parts.push("Z");
+  return parts.join(" ");
 }
 
 // Every panel's center sits on AXIS_Y — flow line is straight horizontal through them
@@ -96,22 +126,9 @@ function panelCenterPoint(i: number) {
 const CLUSTER_LEFT = panelCenters[0] - PANEL_W / 2;
 const CLUSTER_RIGHT = panelCenters[panels.length - 1] + PANEL_W / 2;
 
-// Trail lanes — straight horizontal, sit in margins on either side
-type Lane = { y: number; color: string; len: number; dots: number };
-
-const leftLanes: Lane[] = [
-  { y: 95,  color: "#22D3EE", len: 130, dots: 2 },
-  { y: 160, color: "#2DD4BF", len: 220, dots: 3 },
-  { y: AXIS_Y, color: "#22D3EE", len: 280, dots: 3 }, // longest — feeds the flow line
-  { y: 360, color: "#22C55E", len: 200, dots: 3 },
-];
-
-const rightLanes: Lane[] = [
-  { y: 115, color: "#FF4DCC", len: 100, dots: 2 },
-  { y: 185, color: "#A855F7", len: 170, dots: 3 },
-  { y: AXIS_Y, color: "#FF4DCC", len: 240, dots: 3 }, // longest — flow line exit
-  { y: 375, color: "#A855F7", len: 130, dots: 3 },
-];
+// Center line stretches edge-to-edge; mask fades both ends
+const LINE_X1 = 0;
+const LINE_X2 = VB_W;
 
 function PipelineCanvas() {
   return (
@@ -135,7 +152,7 @@ function PipelineCanvas() {
             </linearGradient>
           ))}
 
-          {/* Horizontal spectrum gradient — flow line is straight horizontal */}
+          {/* Horizontal spectrum gradient — line spans full viewBox, gradient locked to panel cluster */}
           <linearGradient id="flowGradient" gradientUnits="userSpaceOnUse"
             x1={CLUSTER_LEFT} y1={AXIS_Y} x2={CLUSTER_RIGHT} y2={AXIS_Y}>
             <stop offset="0"    stopColor="#22D3EE" />
@@ -147,6 +164,17 @@ function PipelineCanvas() {
             <stop offset="1"    stopColor="#A855F7" />
           </linearGradient>
 
+          {/* Edge fade mask — fades line to 0 at left/right viewBox edges */}
+          <linearGradient id="edgeFade" x1={LINE_X1} y1="0" x2={LINE_X2} y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0"    stopColor="white" stopOpacity="0" />
+            <stop offset="0.18" stopColor="white" stopOpacity="1" />
+            <stop offset="0.82" stopColor="white" stopOpacity="1" />
+            <stop offset="1"    stopColor="white" stopOpacity="0" />
+          </linearGradient>
+          <mask id="lineFadeMask" maskUnits="userSpaceOnUse" x="0" y="0" width={VB_W} height={VB_H}>
+            <rect x="0" y="0" width={VB_W} height={VB_H} fill="url(#edgeFade)" />
+          </mask>
+
           {/* Soft glow for nodes */}
           <filter id="nodeGlow" x="-100%" y="-100%" width="300%" height="300%">
             <feGaussianBlur stdDeviation="2.4" result="blur" />
@@ -157,89 +185,35 @@ function PipelineCanvas() {
           </filter>
         </defs>
 
-        {/* ── LEFT INPUT LINES (straight horizontal, with end-cap glow) ──── */}
-        {leftLanes.map((lane, i) => {
-          const lineEndX = CLUSTER_LEFT - 6;
-          const lineStartX = lineEndX - lane.len;
-          // Dots distributed: leftmost smallest/dimmest, rightmost (panel side) largest/brightest
-          const dotXs = Array.from({ length: lane.dots }).map(
-            (_, j) => lineStartX + 8 + j * ((lane.len - 12) / Math.max(1, lane.dots - 1))
-          );
-          return (
-            <g key={`L${i}`}>
-              <line
-                x1={lineStartX}
-                y1={lane.y}
-                x2={lineEndX}
-                y2={lane.y}
-                stroke={lane.color}
-                strokeWidth="1.25"
-                strokeOpacity="0.65"
-              />
-              {dotXs.map((cx, j) => {
-                const isLast = j === lane.dots - 1;
-                return (
-                  <circle
-                    key={j}
-                    cx={cx}
-                    cy={lane.y}
-                    r={isLast ? 4 : 3.2 - (lane.dots - 1 - j) * 0.4}
-                    fill={lane.color}
-                    filter="url(#nodeGlow)"
-                    opacity={0.55 + j * 0.15}
-                  />
-                );
-              })}
-            </g>
-          );
-        })}
+        {/* ── CENTER FLOW LINE — full-width, fading to transparent on both edges ── */}
+        <g mask="url(#lineFadeMask)">
+          <motion.line
+            x1={LINE_X1}
+            y1={AXIS_Y}
+            x2={LINE_X2}
+            y2={AXIS_Y}
+            stroke="url(#flowGradient)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{ duration: 1.4, delay: 0.2, ease }}
+          />
 
-        {/* ── RIGHT OUTPUT LINES (mirror — bright dot at panel side) ────── */}
-        {rightLanes.map((lane, i) => {
-          const lineStartX = CLUSTER_RIGHT + 6;
-          const lineEndX = lineStartX + lane.len;
-          const dotXs = Array.from({ length: lane.dots }).map(
-            (_, j) => lineStartX + 8 + j * ((lane.len - 12) / Math.max(1, lane.dots - 1))
-          );
-          return (
-            <g key={`R${i}`}>
-              <line
-                x1={lineStartX}
-                y1={lane.y}
-                x2={lineEndX}
-                y2={lane.y}
-                stroke={lane.color}
-                strokeWidth="1.25"
-                strokeOpacity="0.65"
-              />
-              {dotXs.map((cx, j) => {
-                const isFirst = j === 0;
-                return (
-                  <circle
-                    key={j}
-                    cx={cx}
-                    cy={lane.y}
-                    r={isFirst ? 4 : 3.2 - j * 0.4}
-                    fill={lane.color}
-                    filter="url(#nodeGlow)"
-                    opacity={0.55 + (lane.dots - 1 - j) * 0.15}
-                  />
-                );
-              })}
-            </g>
-          );
-        })}
-
-        {/* ── CENTER FLOW LINE (straight horizontal, all panel centers sit on AXIS_Y) ──── */}
-        <line
-          x1={CLUSTER_LEFT - 6}
-          y1={AXIS_Y}
-          x2={CLUSTER_RIGHT + 6}
-          y2={AXIS_Y}
-          stroke="url(#flowGradient)"
-          strokeWidth="2.5"
-          strokeOpacity="0.9"
-        />
+          {/* Traveling pulse — bright dot sweeping left → right along the line */}
+          <motion.circle
+            r="5"
+            cy={AXIS_Y}
+            fill="white"
+            initial={{ cx: LINE_X1, opacity: 0 }}
+            animate={{ cx: LINE_X2, opacity: [0, 1, 1, 0] }}
+            transition={{
+              cx: { duration: 4.2, repeat: Infinity, ease: "linear", delay: 1.4 },
+              opacity: { duration: 4.2, repeat: Infinity, ease: "linear", delay: 1.4, times: [0, 0.08, 0.92, 1] },
+            }}
+            style={{ filter: "drop-shadow(0 0 8px white)" }}
+          />
+        </g>
 
         {/* ── PANELS (parallelograms, per-panel scale) ────────────────── */}
         {panels.map((p, i) => (
@@ -248,47 +222,48 @@ function PipelineCanvas() {
             d={panelPath(panelCenters[i], PANEL_SCALES[i])}
             fill={`url(#panelGrad${i})`}
             stroke={p.stroke}
-            strokeWidth="2"
-            strokeMiterlimit="10"
-            initial={{ opacity: 0, y: 20 }}
+            strokeWidth={PANEL_STROKE}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.85, delay: 0.4 + i * 0.06, ease }}
+            transition={{ duration: 0.9, delay: 0.4 + i * 0.07, ease }}
             style={{
-              filter: `drop-shadow(0 0 12px ${p.stroke}55)`,
+              filter: `drop-shadow(0 0 14px ${p.stroke}66)`,
             }}
           />
         ))}
 
-        {/* ── PER-PANEL CENTER NODES — sit on the slanted flow line ───── */}
+        {/* ── PER-PANEL CENTER NODES — pulse on the flow line ─────────── */}
         {panels.map((p, i) => {
           const { cx, cy } = panelCenterPoint(i);
+          const stagger = i * 0.18;
           return (
             <g key={`node${i}`}>
-              {/* Outer glow halo */}
-              <circle
+              {/* Breathing halo */}
+              <motion.circle
                 cx={cx}
                 cy={cy}
-                r="12"
                 fill={p.stroke}
-                opacity="0.18"
                 filter="url(#nodeGlow)"
+                initial={{ r: 6, opacity: 0 }}
+                animate={{ r: [10, 16, 10], opacity: [0.12, 0.28, 0.12] }}
+                transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut", delay: 1 + stagger }}
               />
               {/* Solid core */}
-              <circle
+              <motion.circle
                 cx={cx}
                 cy={cy}
                 r="6"
                 fill={p.stroke}
                 filter="url(#nodeGlow)"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.7 + i * 0.07, ease }}
+                style={{ transformOrigin: `${cx}px ${cy}px` }}
               />
               {/* Bright center pip */}
-              <circle
-                cx={cx}
-                cy={cy}
-                r="2"
-                fill="#FFFFFF"
-                opacity="0.85"
-              />
+              <circle cx={cx} cy={cy} r="2" fill="#FFFFFF" opacity="0.9" />
             </g>
           );
         })}
