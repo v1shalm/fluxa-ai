@@ -39,6 +39,10 @@ const AXIS_Y = PANEL_TOP_FULL + (PANEL_H + PANEL_SLANT) / 2;
 // Per-panel size scale: small → grow → full (3,4,5) → shrink (panels 6 and 7 same size)
 const PANEL_SCALES = [0.82, 0.92, 1.0, 1.0, 1.0, 0.94, 0.94];
 
+// Per-panel vertical offset — last (purple) panel nudged up so it reads as
+// recessed/floating above the stack rather than sitting flush on the axis.
+const PANEL_Y_OFFSETS = [0, 0, 0, 0, 0, 0, -14];
+
 // Variable spacing — gap on the left, increasing overlap moving right.
 // Each value is the center-to-center distance between the indexed panel and the next.
 const PAIR_OFFSETS = [
@@ -47,7 +51,7 @@ const PAIR_OFFSETS = [
   130, // 3→4: 50px overlap
   110, // 4→5: 70px overlap
   95,  // 5→6: 85px overlap
-  82,  // 6→7: 98px overlap (most compressed on the right)
+  60,  // 6→7: pushed deeper into the stack (was 82) — panel 7 sits further back
 ];
 
 // Cumulative panel centers, then re-centered horizontally in the viewBox
@@ -63,7 +67,7 @@ const panelCenters: number[] = (() => {
 // its actual adjacent edge (not cardinal axes), so slanted edges flow smoothly into
 // the corner curve. This eliminates the visible "bump" the cardinal-axis approach
 // produced where the slanted top/bottom met the rounded vertical sides.
-function panelPath(cx: number, scale: number) {
+function panelPath(cx: number, scale: number, dy: number = 0) {
   const w = PANEL_W;
   const h = PANEL_H * scale;
   const slant = PANEL_SLANT * scale;
@@ -71,7 +75,7 @@ function panelPath(cx: number, scale: number) {
 
   const lX = cx - w / 2;
   const rX = cx + w / 2;
-  const tlY = AXIS_Y - h / 2 - slant / 2;
+  const tlY = AXIS_Y - h / 2 - slant / 2 + dy;
   const trY = tlY + slant;
   const blY = tlY + h;
   const brY = trY + h;
@@ -183,6 +187,20 @@ function PipelineCanvas() {
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+
+          {/* Frosted noise — fine speckle for the glass-tile texture */}
+          <filter id="frostGrain" x="0%" y="0%" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" seed="3" />
+            <feColorMatrix
+              values="0 0 0 0 1
+                      0 0 0 0 1
+                      0 0 0 0 1
+                      0 0 0 0.55 0"
+            />
+          </filter>
+          <pattern id="frostPattern" x="0" y="0" width="220" height="220" patternUnits="userSpaceOnUse">
+            <rect width="220" height="220" fill="black" filter="url(#frostGrain)" />
+          </pattern>
         </defs>
 
         {/* ── CENTER FLOW LINE — full-width, fading to transparent on both edges ── */}
@@ -215,24 +233,39 @@ function PipelineCanvas() {
           />
         </g>
 
-        {/* ── PANELS (parallelograms, per-panel scale) ────────────────── */}
-        {panels.map((p, i) => (
-          <motion.path
-            key={i}
-            d={panelPath(panelCenters[i], PANEL_SCALES[i])}
-            fill={`url(#panelGrad${i})`}
-            stroke={p.stroke}
-            strokeWidth={PANEL_STROKE}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.4 + i * 0.07, ease }}
-            style={{
-              filter: `drop-shadow(0 0 14px ${p.stroke}66)`,
-            }}
-          />
-        ))}
+        {/* ── PANELS (parallelograms, frosted-glass — gradient + grain overlay + stroke) ── */}
+        {panels.map((p, i) => {
+          const d = panelPath(panelCenters[i], PANEL_SCALES[i], PANEL_Y_OFFSETS[i]);
+          return (
+            <motion.g
+              key={i}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.4 + i * 0.07, ease }}
+              style={{ filter: `drop-shadow(0 0 14px ${p.stroke}66)` }}
+            >
+              {/* Tinted glass body */}
+              <path d={d} fill={`url(#panelGrad${i})`} fillOpacity={0.78} />
+              {/* Frosted grain texture, screen-blended so it lifts the surface */}
+              <path
+                d={d}
+                fill="url(#frostPattern)"
+                opacity={0.32}
+                style={{ mixBlendMode: "screen" }}
+                pointerEvents="none"
+              />
+              {/* Outer stroke last so it stays crisp on top of the texture */}
+              <path
+                d={d}
+                fill="none"
+                stroke={p.stroke}
+                strokeWidth={PANEL_STROKE}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+            </motion.g>
+          );
+        })}
 
         {/* ── PER-PANEL CENTER NODES — pulse on the flow line ─────────── */}
         {panels.map((p, i) => {
