@@ -26,69 +26,91 @@ const panels: Panel[] = [
 
 const VB_W = 1400;
 const VB_H = 480;
-const PANEL_W = 140;
-const PANEL_H = 340;
-const PANEL_SLANT = 56;   // right edge sits this much LOWER than left edge — creates the parallelogram lean
-const PANEL_OFFSET = 110; // center-to-center horizontal step
-const PANEL_TOP = 56;     // top-edge y of leftmost panel
+const PANEL_W = 180;
+const PANEL_H = 340;          // full-size panel height
+const PANEL_SLANT = 70;       // full-size right-edge drop — scales with panel height
+const PANEL_RADIUS = 8;       // corner rounding
+const PANEL_TOP_FULL = 35;    // top edge y of a full-size panel
 
-// Panel center X positions
-const panelCenters = panels.map(
-  (_, i) => VB_W / 2 + (i - (panels.length - 1) / 2) * PANEL_OFFSET
-);
+// Shared horizontal axis — every panel's geometric center sits on this line
+const AXIS_Y = PANEL_TOP_FULL + (PANEL_H + PANEL_SLANT) / 2;
 
-// Pure parallelogram path — sharp straight corners, no curves
-function panelPath(cx: number) {
-  const lX = cx - PANEL_W / 2;
-  const rX = cx + PANEL_W / 2;
-  const tlY = PANEL_TOP;                          // top-left
-  const trY = PANEL_TOP + PANEL_SLANT;             // top-right (lower than top-left)
-  const blY = PANEL_TOP + PANEL_H;                 // bottom-left
-  const brY = PANEL_TOP + PANEL_SLANT + PANEL_H;   // bottom-right
+// Per-panel size scale: small → grow → full (3,4,5) → shrink → smaller
+const PANEL_SCALES = [0.82, 0.92, 1.0, 1.0, 1.0, 0.94, 0.86];
+
+// Variable spacing — gap on the left, increasing overlap moving right.
+// Each value is the center-to-center distance between the indexed panel and the next.
+const PAIR_OFFSETS = [
+  190, // 1→2: ~10px gap (panels just barely separated)
+  155, // 2→3: 25px overlap
+  130, // 3→4: 50px overlap
+  110, // 4→5: 70px overlap
+  95,  // 5→6: 85px overlap
+  82,  // 6→7: 98px overlap (most compressed on the right)
+];
+
+// Cumulative panel centers, then re-centered horizontally in the viewBox
+const panelCenters: number[] = (() => {
+  const positions = [0];
+  for (const step of PAIR_OFFSETS) positions.push(positions[positions.length - 1] + step);
+  const span = positions[positions.length - 1];
+  const offset = VB_W / 2 - span / 2;
+  return positions.map((p) => p + offset);
+})();
+
+// Parallelogram path with rounded corners (8px) — straight edges, gentle corner curves
+function panelPath(cx: number, scale: number) {
+  const w = PANEL_W;
+  const h = PANEL_H * scale;
+  const slant = PANEL_SLANT * scale;
+  const r = PANEL_RADIUS;
+
+  const lX = cx - w / 2;
+  const rX = cx + w / 2;
+  // Center each panel vertically on AXIS_Y regardless of scale
+  const tlY = AXIS_Y - h / 2 - slant / 2;
+  const trY = tlY + slant;
+  const blY = tlY + h;
+  const brY = trY + h;
 
   return [
-    `M ${lX} ${tlY}`,
-    `L ${rX} ${trY}`,
-    `L ${rX} ${brY}`,
-    `L ${lX} ${blY}`,
+    `M ${lX + r} ${tlY}`,
+    `L ${rX - r} ${trY}`,
+    `Q ${rX} ${trY}, ${rX} ${trY + r}`,
+    `L ${rX} ${brY - r}`,
+    `Q ${rX} ${brY}, ${rX - r} ${brY}`,
+    `L ${lX + r} ${blY}`,
+    `Q ${lX} ${blY}, ${lX} ${blY - r}`,
+    `L ${lX} ${tlY + r}`,
+    `Q ${lX} ${tlY}, ${lX + r} ${tlY}`,
     "Z",
   ].join(" ");
 }
 
-// Each panel's geometric center (post-slant) — the flow line passes through these
+// Every panel's center sits on AXIS_Y — flow line is straight horizontal through them
 function panelCenterPoint(i: number) {
-  return {
-    cx: panelCenters[i],
-    cy: PANEL_TOP + PANEL_SLANT / 2 + PANEL_H / 2,
-  };
+  return { cx: panelCenters[i], cy: AXIS_Y };
 }
 
-// Cluster bounds (using panel 0 left edge and panel 6 right edge)
+// Cluster bounds — leftmost panel left edge to rightmost panel right edge
 const CLUSTER_LEFT = panelCenters[0] - PANEL_W / 2;
 const CLUSTER_RIGHT = panelCenters[panels.length - 1] + PANEL_W / 2;
-
-// Flow line — slanted to match panel tilt
-// Goes through panel 0 center → panel 6 center
-const FLOW_X1 = panelCenterPoint(0).cx;
-const FLOW_Y1 = panelCenterPoint(0).cy;
-const FLOW_X2 = panelCenterPoint(panels.length - 1).cx;
-const FLOW_Y2 = panelCenterPoint(panels.length - 1).cy;
 
 // Trail lanes — straight horizontal, sit in margins on either side
 type Lane = { y: number; color: string; len: number; dots: number };
 
 const leftLanes: Lane[] = [
-  { y: 110, color: "#22D3EE", len: 130, dots: 2 },
-  { y: 170, color: "#2DD4BF", len: 220, dots: 3 },
-  { y: 256, color: "#22D3EE", len: 280, dots: 3 }, // longest — meets the flow line entry
-  { y: 350, color: "#22C55E", len: 200, dots: 3 },
+  { y: 95,  color: "#22D3EE", len: 130, dots: 2 },
+  { y: 160, color: "#2DD4BF", len: 220, dots: 3 },
+  { y: AXIS_Y, color: "#22D3EE", len: 280, dots: 3 }, // longest — feeds the flow line
+  { y: 360, color: "#22C55E", len: 200, dots: 3 },
 ];
 
 const rightLanes: Lane[] = [
-  { y: 130, color: "#FF4DCC", len: 100, dots: 2 },
-  { y: 200, color: "#A855F7", len: 170, dots: 3 },
-  { y: 296, color: "#FF4DCC", len: 240, dots: 3 }, // longest — flow line exit
-  { y: 380, color: "#A855F7", len: 130, dots: 3 },
+  { y: 115, color: "#FF4DCC", len: 100, dots: 2 },
+  { y: 185, color: "#A855F7", len: 170, dots: 3 },
+  { y: AXIS_Y, color: "#FF4DCC", len: 240, dots: 3 }, // longest — flow line exit
+  { y: 375, color: "#A855F7", len: 130, dots: 3 },
 ];
 
 function PipelineCanvas() {
@@ -113,9 +135,9 @@ function PipelineCanvas() {
             </linearGradient>
           ))}
 
-          {/* Spectrum gradient for the slanted center flow line */}
+          {/* Horizontal spectrum gradient — flow line is straight horizontal */}
           <linearGradient id="flowGradient" gradientUnits="userSpaceOnUse"
-            x1={FLOW_X1} y1={FLOW_Y1} x2={FLOW_X2} y2={FLOW_Y2}>
+            x1={CLUSTER_LEFT} y1={AXIS_Y} x2={CLUSTER_RIGHT} y2={AXIS_Y}>
             <stop offset="0"    stopColor="#22D3EE" />
             <stop offset="0.16" stopColor="#2DD4BF" />
             <stop offset="0.33" stopColor="#22C55E" />
@@ -208,23 +230,22 @@ function PipelineCanvas() {
           );
         })}
 
-        {/* ── CENTER FLOW LINE (slanted, matches panel tilt) ──────────── */}
-        {/* Extends past leftmost / rightmost panel by ~half a panel-width to feel "continuous" with the trails */}
+        {/* ── CENTER FLOW LINE (straight horizontal, all panel centers sit on AXIS_Y) ──── */}
         <line
-          x1={FLOW_X1 - PANEL_W / 2 - 6}
-          y1={FLOW_Y1 - PANEL_SLANT / (2 * (panels.length - 1))}
-          x2={FLOW_X2 + PANEL_W / 2 + 6}
-          y2={FLOW_Y2 + PANEL_SLANT / (2 * (panels.length - 1))}
+          x1={CLUSTER_LEFT - 6}
+          y1={AXIS_Y}
+          x2={CLUSTER_RIGHT + 6}
+          y2={AXIS_Y}
           stroke="url(#flowGradient)"
           strokeWidth="2.5"
           strokeOpacity="0.9"
         />
 
-        {/* ── PANELS (parallelograms) ─────────────────────────────────── */}
+        {/* ── PANELS (parallelograms, per-panel scale) ────────────────── */}
         {panels.map((p, i) => (
           <motion.path
             key={i}
-            d={panelPath(panelCenters[i])}
+            d={panelPath(panelCenters[i], PANEL_SCALES[i])}
             fill={`url(#panelGrad${i})`}
             stroke={p.stroke}
             strokeWidth="2"
