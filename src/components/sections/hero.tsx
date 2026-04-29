@@ -6,213 +6,258 @@ import { ArrowRight, PlayIcon } from "@/components/primitives/icons";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-// ─── Stacked translucent panels — the hero centerpiece ───────────────────
+// ─── Stacked translucent panels — exactly 7, fixed color order ───────────
 
-type Panel = {
-  color: string;
-  glow: string;
-};
+type Panel = { color: string };
 
 const panels: Panel[] = [
-  { color: "#22D3EE", glow: "rgba(34,211,238,0.35)" },   // cyan
-  { color: "#00E5A8", glow: "rgba(0,229,168,0.30)" },    // teal
-  { color: "#00FF66", glow: "rgba(0,255,102,0.30)" },     // green
-  { color: "#A3FF12", glow: "rgba(163,255,18,0.30)" },   // lime
-  { color: "#FFD400", glow: "rgba(255,212,0,0.28)" },    // yellow
-  { color: "#FF6B2D", glow: "rgba(255,107,45,0.30)" },   // orange
-  { color: "#FF4DCC", glow: "rgba(255,77,204,0.35)" },    // pink/magenta
-  { color: "#A855F7", glow: "rgba(168,85,247,0.35)" },    // purple
+  { color: "#22D3EE" }, // cyan
+  { color: "#2DD4BF" }, // teal
+  { color: "#22C55E" }, // green
+  { color: "#A3E635" }, // lime
+  { color: "#FACC15" }, // yellow
+  { color: "#FF4DCC" }, // pink
+  { color: "#A855F7" }, // purple
 ];
 
-// Pipeline lines — extending from both sides of the panels
-// Each line has static endpoint dots and a traveling particle
-type PipeLine = {
-  y: number;       // y within viewBox
-  color: string;
-  dotColorLeft: string;
-  dotColorRight: string;
-  duration: number;
-  delay: number;
-};
+// SVG viewBox dimensions for the entire visual area (1280×420 conceptual canvas)
+const VB_W = 1280;
+const VB_H = 420;
 
-const pipeLines: PipeLine[] = [
-  { y: 72,  color: "#22D3EE", dotColorLeft: "#22D3EE", dotColorRight: "#FF4DCC", duration: 3.8, delay: 0    },
-  { y: 132, color: "#00E5A8", dotColorLeft: "#00E5A8", dotColorRight: "#A855F7", duration: 4.4, delay: 0.5  },
-  { y: 188, color: "#00FF66", dotColorLeft: "#00FF66", dotColorRight: "#FF4DCC", duration: 4.0, delay: 0.2  },
-  { y: 248, color: "#A3FF12", dotColorLeft: "#22D3EE", dotColorRight: "#FF4DCC", duration: 4.6, delay: 0.8  },
-  { y: 308, color: "#FF4DCC", dotColorLeft: "#00E5A8", dotColorRight: "#A855F7", duration: 3.6, delay: 0.3  },
-  { y: 358, color: "#A855F7", dotColorLeft: "#22D3EE", dotColorRight: "#FF4DCC", duration: 4.2, delay: 0.6  },
+// Panel layout — placed in the center horizontally, with horizontal offset
+// between successive panels. Center-of-panels horizontal axis = VB_W/2.
+const PANEL_W = 200;
+const PANEL_H = 340;
+const PANEL_RADIUS = 22;
+const PANEL_TILT = -10; // uniform right tilt, degrees
+const PANEL_OFFSET = 90; // center-to-center horizontal distance
+const PANEL_TOP = (VB_H - PANEL_H) / 2 + 12; // slightly below midline (optical)
+
+// Compute X positions of panel centers (in viewBox coords)
+const panelCenters = panels.map((_, i) => {
+  return VB_W / 2 + (i - (panels.length - 1) / 2) * PANEL_OFFSET;
+});
+
+// Center flow line vertical position (panel center)
+const FLOW_Y = PANEL_TOP + PANEL_H / 2;
+
+// Left + right line lanes (4 each)
+type Lane = { y: number; color: string };
+
+const leftLanes: Lane[] = [
+  { y: 100, color: "#22D3EE" }, // cyan
+  { y: 165, color: "#2DD4BF" }, // teal
+  { y: 280, color: "#22C55E" }, // green
+  { y: 340, color: "#22D3EE" }, // cyan again
 ];
 
-function PipelineLines() {
+const rightLanes: Lane[] = [
+  { y: 100, color: "#FF4DCC" }, // pink
+  { y: 165, color: "#A855F7" }, // purple
+  { y: 280, color: "#FF4DCC" }, // pink
+  { y: 340, color: "#A855F7" }, // purple
+];
+
+// Where input lines end (left panel area boundary) / output lines begin
+const PANELS_LEFT_EDGE = panelCenters[0] - PANEL_W / 2; // ~316
+const PANELS_RIGHT_EDGE = panelCenters[panels.length - 1] + PANEL_W / 2; // ~964
+
+function PipelineCanvas() {
   return (
-    <svg
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      viewBox="0 0 1200 420"
-      preserveAspectRatio="none"
-      aria-hidden
-    >
-      {pipeLines.map((line, i) => (
-        <g key={i}>
-          {/* Continuous horizontal track line */}
-          <line
-            x1="0"
-            y1={line.y}
-            x2="1200"
-            y2={line.y}
-            stroke={line.color}
-            strokeWidth="1"
-            strokeOpacity="0.08"
-          />
-
-          {/* Left-side static dots (staggered positions) */}
-          <circle cx={40 + i * 18}  cy={line.y} r={4 - i * 0.3} fill={line.dotColorLeft}  opacity="0.7" />
-          <circle cx={90 + i * 12}  cy={line.y} r={3}            fill={line.dotColorLeft}  opacity="0.5" />
-          <circle cx={145 + i * 8}  cy={line.y} r={2.5}          fill={line.dotColorLeft}  opacity="0.35" />
-
-          {/* Left-side connecting segments (brighter) */}
-          <line
-            x1={40 + i * 18}
-            y1={line.y}
-            x2={260}
-            y2={line.y}
-            stroke={line.dotColorLeft}
-            strokeWidth="1.2"
-            strokeOpacity="0.15"
-          />
-
-          {/* Right-side static dots (staggered positions) */}
-          <circle cx={1160 - i * 18} cy={line.y} r={4 - i * 0.3} fill={line.dotColorRight} opacity="0.7" />
-          <circle cx={1110 - i * 12} cy={line.y} r={3}            fill={line.dotColorRight} opacity="0.5" />
-          <circle cx={1055 - i * 8}  cy={line.y} r={2.5}          fill={line.dotColorRight} opacity="0.35" />
-
-          {/* Right-side connecting segments */}
-          <line
-            x1={940}
-            y1={line.y}
-            x2={1160 - i * 18}
-            y2={line.y}
-            stroke={line.dotColorRight}
-            strokeWidth="1.2"
-            strokeOpacity="0.15"
-          />
-
-          {/* Traveling particle — left to right */}
-          <motion.circle
-            r={3}
-            cy={line.y}
-            fill={line.color}
-            style={{
-              filter: `drop-shadow(0 0 6px ${line.color})`,
-            }}
-            animate={{ cx: [100, 1100] }}
-            transition={{
-              duration: line.duration,
-              repeat: Infinity,
-              ease: "linear",
-              delay: line.delay,
-            }}
-          />
-          {/* Traveling particle — right to left (opposite direction for some lines) */}
-          {i % 2 === 1 && (
-            <motion.circle
-              r={2.5}
-              cy={line.y}
-              fill={line.dotColorRight}
-              style={{
-                filter: `drop-shadow(0 0 5px ${line.dotColorRight})`,
-              }}
-              animate={{ cx: [1100, 100] }}
-              transition={{
-                duration: line.duration + 1,
-                repeat: Infinity,
-                ease: "linear",
-                delay: line.delay + 2,
-              }}
-            />
-          )}
-        </g>
-      ))}
-    </svg>
-  );
-}
-
-function StackedPanels() {
-  const PANEL_W = 110;
-  const PANEL_H = 300;
-  const OVERLAP = 58;
-
-  return (
-    <div className="relative w-full h-[420px] flex items-center justify-center">
-      {/* Pipeline lines spanning full width behind panels */}
-      <PipelineLines />
-
-      {/* Panels container */}
-      <div
-        className="relative flex items-center justify-center"
-        style={{ perspective: "1200px", transformStyle: "preserve-3d" }}
+    <div className="relative w-full" style={{ aspectRatio: `${VB_W} / ${VB_H}` }}>
+      {/*
+        Single SVG holds: left input lines, right output lines, and center flow
+        line. The center flow line sits BEHIND panels (visible through the
+        translucent fill). Panel-center glowing nodes are rendered as DOM
+        elements over each panel for crisp glows.
+      */}
+      <svg
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        className="absolute inset-0 size-full pointer-events-none"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden
       >
-        {panels.map((p, i) => {
-          const center = (panels.length - 1) / 2;
-          const rotY = (i - center) * 4.5;
-          const yOffset = Math.abs(i - center) * 3;
-          const zOffset = -Math.abs(i - center) * 8;
+        <defs>
+          {/* Spectrum gradient for the center flow line */}
+          <linearGradient id="flowGradient" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0"    stopColor="#22D3EE" />
+            <stop offset="0.16" stopColor="#2DD4BF" />
+            <stop offset="0.33" stopColor="#22C55E" />
+            <stop offset="0.50" stopColor="#A3E635" />
+            <stop offset="0.66" stopColor="#FACC15" />
+            <stop offset="0.83" stopColor="#FF4DCC" />
+            <stop offset="1"    stopColor="#A855F7" />
+          </linearGradient>
 
+          {/* Soft fade masks for line ends */}
+          <linearGradient id="leftFade" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0"   stopColor="white" stopOpacity="0" />
+            <stop offset="0.4" stopColor="white" stopOpacity="0.8" />
+            <stop offset="1"   stopColor="white" stopOpacity="1" />
+          </linearGradient>
+          <linearGradient id="rightFade" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0"   stopColor="white" stopOpacity="1" />
+            <stop offset="0.6" stopColor="white" stopOpacity="0.8" />
+            <stop offset="1"   stopColor="white" stopOpacity="0" />
+          </linearGradient>
+
+          {/* Glow filter for nodes */}
+          <filter id="nodeGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* ── LEFT INPUT LINES ─────────────────────────────────────────── */}
+        {leftLanes.map((lane, i) => {
+          const lineEndX = PANELS_LEFT_EDGE - 8;
+          const lineStartX = lineEndX - 200; // ~200px line on the left
+          // Static dot positions along the line (3 per lane)
+          const dotXs = [
+            lineStartX + 18,
+            lineStartX + 90,
+            lineStartX + 168,
+          ];
           return (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 40, rotateY: rotY * 2.5 }}
-              animate={{
-                opacity: 1,
-                y: yOffset,
-                rotateY: rotY,
-              }}
-              transition={{
-                duration: 1.1,
-                delay: 0.5 + i * 0.07,
-                ease,
-              }}
-              style={{
-                width: PANEL_W,
-                height: PANEL_H,
-                marginLeft: i === 0 ? 0 : -OVERLAP,
-                borderRadius: 14,
-                border: `1.5px solid ${p.color}`,
-                background: `linear-gradient(180deg, ${p.color}22 0%, ${p.color}0A 40%, ${p.color}18 100%)`,
-                boxShadow: `0 0 60px -6px ${p.glow}, 0 8px 28px -8px rgba(0,0,0,0.5), inset 0 1px 0 0 ${p.color}44, inset 0 -1px 0 0 ${p.color}22`,
-                transformStyle: "preserve-3d",
-                transform: `translateZ(${zOffset}px)`,
-                backdropFilter: "blur(2px)",
-                position: "relative",
-                zIndex: panels.length - Math.abs(i - Math.floor(center)),
-              }}
-            >
-              {/* Subtle breathing glow */}
-              <motion.div
-                className="absolute inset-0 rounded-[13px]"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{
-                  duration: 3.5 + i * 0.4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: i * 0.25,
-                }}
-                style={{
-                  background: `radial-gradient(ellipse at 50% 50%, ${p.color}0F, transparent 70%)`,
-                }}
-                aria-hidden
+            <g key={`L${i}`}>
+              {/* Faded thin line */}
+              <line
+                x1={lineStartX}
+                y1={lane.y}
+                x2={lineEndX}
+                y2={lane.y}
+                stroke={lane.color}
+                strokeWidth="1"
+                strokeOpacity="0.5"
               />
-              {/* Inner vertical highlight */}
-              <div
-                className="absolute left-0 top-[10%] bottom-[10%] w-[1.5px] rounded-full"
-                style={{
-                  background: `linear-gradient(180deg, transparent, ${p.color}88, transparent)`,
-                }}
-                aria-hidden
-              />
-            </motion.div>
+              {/* Glowing nodes (static) */}
+              {dotXs.map((cx, j) => (
+                <circle
+                  key={j}
+                  cx={cx}
+                  cy={lane.y}
+                  r={3.5 - j * 0.4}
+                  fill={lane.color}
+                  filter="url(#nodeGlow)"
+                  opacity={0.45 + j * 0.18}
+                />
+              ))}
+            </g>
           );
         })}
+
+        {/* ── RIGHT OUTPUT LINES ───────────────────────────────────────── */}
+        {rightLanes.map((lane, i) => {
+          const lineStartX = PANELS_RIGHT_EDGE + 8;
+          const lineEndX = lineStartX + 200;
+          const dotXs = [
+            lineStartX + 32,
+            lineStartX + 110,
+            lineStartX + 182,
+          ];
+          return (
+            <g key={`R${i}`}>
+              <line
+                x1={lineStartX}
+                y1={lane.y}
+                x2={lineEndX}
+                y2={lane.y}
+                stroke={lane.color}
+                strokeWidth="1"
+                strokeOpacity="0.5"
+              />
+              {dotXs.map((cx, j) => (
+                <circle
+                  key={j}
+                  cx={cx}
+                  cy={lane.y}
+                  r={3.5 - (2 - j) * 0.4}
+                  fill={lane.color}
+                  filter="url(#nodeGlow)"
+                  opacity={0.45 + (2 - j) * 0.18}
+                />
+              ))}
+            </g>
+          );
+        })}
+
+        {/* ── CENTER FLOW LINE ─────────────────────────────────────────── */}
+        {/* Faint spectrum line behind panels — visible through translucent fill */}
+        <line
+          x1={PANELS_LEFT_EDGE - 12}
+          y1={FLOW_Y}
+          x2={PANELS_RIGHT_EDGE + 12}
+          y2={FLOW_Y}
+          stroke="url(#flowGradient)"
+          strokeWidth="1.5"
+          strokeOpacity="0.55"
+        />
+      </svg>
+
+      {/* ── PANELS (3D stacked) ───────────────────────────────────────── */}
+      <div
+        className="absolute inset-0"
+        style={{ perspective: "1600px" }}
+      >
+        <div
+          className="relative size-full"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          {panels.map((p, i) => {
+            const center = (panels.length - 1) / 2;
+            const distFromCenter = Math.abs(i - center);
+            // Center panels slightly forward; edges recede
+            const translateZ = -distFromCenter * 6;
+            // z-index higher for center panels, so they overlap edges
+            const zIndex = 10 + (panels.length - distFromCenter);
+            const leftPct = (panelCenters[i] / VB_W) * 100;
+            const topPct = (PANEL_TOP / VB_H) * 100;
+            const widthPct = (PANEL_W / VB_W) * 100;
+            const heightPct = (PANEL_H / VB_H) * 100;
+
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.9,
+                  delay: 0.4 + i * 0.07,
+                  ease,
+                }}
+                style={{
+                  position: "absolute",
+                  left: `${leftPct}%`,
+                  top: `${topPct}%`,
+                  width: `${widthPct}%`,
+                  height: `${heightPct}%`,
+                  transform: `translateX(-50%) rotateY(${PANEL_TILT}deg) translateZ(${translateZ}px)`,
+                  transformStyle: "preserve-3d",
+                  zIndex,
+                  borderRadius: PANEL_RADIUS,
+                  border: `2px solid ${p.color}`,
+                  background: `linear-gradient(180deg, ${p.color}1F 0%, ${p.color}0E 100%)`,
+                  boxShadow: `0 0 20px -6px ${p.color}66, inset 0 0 0 1px ${p.color}1A`,
+                }}
+              >
+                {/* Center node (the one along the flow line, inside each panel) */}
+                <div
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                  style={{
+                    width: 10,
+                    height: 10,
+                    backgroundColor: p.color,
+                    boxShadow: `0 0 14px ${p.color}, 0 0 4px ${p.color}`,
+                  }}
+                  aria-hidden
+                />
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -226,20 +271,9 @@ export function Hero() {
       id="top"
       className="relative pt-[140px] pb-2xl overflow-hidden"
     >
-      {/* Atmosphere — single soft radial */}
-      <div
-        className="absolute inset-0 -z-10 opacity-90"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 50% at 50% 30%, rgba(34,211,238,0.05), transparent 60%)",
-        }}
-        aria-hidden
-      />
-
       <div className="mx-auto max-w-[1280px] px-6">
         {/* Top row — H1 left, CTAs top-right */}
         <div className="grid lg:grid-cols-[1.4fr_auto] gap-md lg:gap-xl items-start">
-          {/* Headline + sub */}
           <div>
             <motion.h1
               initial={{ opacity: 0 }}
@@ -276,7 +310,6 @@ export function Hero() {
             </motion.p>
           </div>
 
-          {/* CTAs — top right */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -294,17 +327,18 @@ export function Hero() {
           </motion.div>
         </div>
 
-        {/* Stacked panels visual — the centerpiece */}
+        {/* Pipeline panel visual — centered, with ~160px horizontal margin built in via container width */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.6, ease }}
-          className="mt-2xl"
+          className="mt-2xl mx-auto"
+          style={{ maxWidth: "1280px" }}
         >
-          <StackedPanels />
+          <PipelineCanvas />
         </motion.div>
 
-        {/* Trust strip — 3 stats */}
+        {/* Trust strip */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
