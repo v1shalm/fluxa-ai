@@ -249,7 +249,7 @@ function PathCircle({
     <button
       onClick={onClick}
       aria-label={`Show ${card.title}`}
-      className="absolute -translate-x-1/2 -translate-y-1/2 group"
+      className="absolute -translate-x-1/2 -translate-y-1/2 group inline-flex items-center justify-center size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
       style={{ left: `${card.circle.x}%`, top: `${card.circle.y}%` }}
     >
       {/* Active state — expanding ring pulse */}

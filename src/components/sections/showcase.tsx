@@ -307,7 +307,7 @@ export function Showcase() {
                   <span
                     key={s.id}
                     className={cn(
-                      "h-1 rounded-full transition-all duration-500 ease-out-quart",
+                      "h-1 rounded-full transition-[width,background-color] duration-500 ease-out-quart",
                       activeStep === s.id
                         ? "w-6"
                         : "w-1 bg-ink-line"
