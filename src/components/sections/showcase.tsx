@@ -335,8 +335,10 @@ export function Showcase() {
           One canvas. <span className="text-text-tertiary">Whole lifecycle.</span>
         </motion.h2>
 
-        {/* Sticky-scroll layout */}
-        <div className="grid lg:grid-cols-[1.1fr_1fr] gap-xl lg:gap-2xl items-start">
+        {/* Sticky-scroll layout. NO items-start — the left column must stretch
+            to the full row height so the sticky inside it has a real scroll
+            range (canvas height ≪ steps column height). */}
+        <div className="grid lg:grid-cols-[1.35fr_1fr] gap-xl lg:gap-2xl">
           {/* Left: sticky canvas */}
           <div className="hidden lg:block">
             <div className="sticky top-32">
