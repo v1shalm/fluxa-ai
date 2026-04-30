@@ -13,7 +13,7 @@ import { FinalCTA } from "@/components/sections/final-cta";
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen bg-ink">
+    <div className="relative min-h-screen bg-ink overflow-x-clip">
       {/* Global grain — tasteful, single-pass texture across the dark surface */}
       <div className="noise-overlay" aria-hidden />
 
@@ -32,7 +32,7 @@ export default function Home() {
       />
 
       <Navbar />
-      <main className="relative">
+      <main className="relative overflow-x-clip">
         <Hero />
         <Concept />
         <Showcase />

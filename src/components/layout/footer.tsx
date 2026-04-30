@@ -196,13 +196,13 @@ export function Footer() {
             }
           `}</style>
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 1.2, ease }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.9, ease }}
             className="relative font-display font-semibold tracking-[-0.06em] leading-[0.82] text-center text-text-primary"
             style={{
-              fontSize: "clamp(96px, 22vw, 320px)",
+              fontSize: "clamp(64px, 22vw, 320px)",
               paddingBottom: "0.05em",
             }}
           >
