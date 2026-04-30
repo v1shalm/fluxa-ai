@@ -201,32 +201,49 @@ function DashedFrame({ accentHex }: { accentHex: string }) {
 // ─── Inline pill that sits inside the headline ────────────────────────────
 
 function InlineLatencyBadge() {
+  // The pill's font-size is set in em so the entire badge — text, status dot,
+  // progress dots, padding, gap — scales proportionally with whatever heading
+  // size it's nested in. items-center vertically centers all three children.
   return (
     <motion.span
       initial={{ opacity: 0, scale: 0.85 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 0.5, delay: 0.35, ease }}
-      style={{ verticalAlign: "0.05em" }}
-      className="inline-flex items-baseline gap-2 align-middle px-3 py-1 rounded-full bg-ink-surface border border-flux-green/40 mx-1"
+      className="inline-flex items-center align-middle rounded-full bg-ink-surface border border-flux-green/40"
+      style={{
+        fontSize: "0.36em",
+        gap: "0.5em",
+        padding: "0.35em 0.8em",
+        marginInline: "0.2em",
+        verticalAlign: "0.12em",
+      }}
     >
-      <span className="relative flex size-2">
+      {/* Status dot — sized in em so it tracks the badge's font-size */}
+      <span
+        className="relative inline-block shrink-0"
+        style={{ width: "0.7em", height: "0.7em" }}
+      >
         <span className="absolute inset-0 rounded-full bg-flux-green animate-status" />
         <span className="absolute inset-0 rounded-full bg-flux-green opacity-50 animate-ping" />
       </span>
+
+      {/* Reading at 1em — i.e. the badge's font-size. */}
       <motion.span
-        className="font-sans font-semibold text-flux-green num-tabular tracking-normal"
-        style={{ fontSize: "0.42em", lineHeight: 1 }}
+        className="font-sans font-semibold text-flux-green num-tabular leading-none"
         animate={{ opacity: [0.85, 1, 0.85] }}
         transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
       >
         2.4ms
       </motion.span>
-      <span className="flex gap-0.5" aria-hidden>
+
+      {/* Progress dots — also em-scaled, kept proportional to the text */}
+      <span className="inline-flex shrink-0" style={{ gap: "0.18em" }} aria-hidden>
         {[0, 1, 2, 3, 4].map((i) => (
           <motion.span
             key={i}
-            className="size-1 rounded-full bg-flux-green"
+            className="rounded-full bg-flux-green"
+            style={{ width: "0.32em", height: "0.32em" }}
             animate={{ opacity: [0.25, 1, 0.25] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: i * 0.18 }}
           />
@@ -236,9 +253,14 @@ function InlineLatencyBadge() {
   );
 }
 
-// ─── Circle marker on the polygon path — clickable, glows when active ─────
+// ─── Hex marker on the polygon path — clickable. No pulsing rings, no soft
+//     glow. Active = larger filled hexagon plus a thin concentric outline a
+//     bit further out (a discrete ring, not a halo). ─────────────────────
 
-function PathCircle({
+// Pointy-top regular hexagon vertices on a unit circle.
+const HEX_POINTS = "0,-1 0.866,-0.5 0.866,0.5 0,1 -0.866,0.5 -0.866,-0.5";
+
+function PathHex({
   card,
   isActive,
   onClick,
@@ -247,47 +269,49 @@ function PathCircle({
   isActive: boolean;
   onClick: () => void;
 }) {
+  const size = isActive ? 22 : 14;
   return (
     <button
       onClick={onClick}
       aria-label={`Show ${card.title}`}
-      className="absolute -translate-x-1/2 -translate-y-1/2 group inline-flex items-center justify-center size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
+      aria-pressed={isActive}
+      className="absolute -translate-x-1/2 -translate-y-1/2 inline-flex items-center justify-center size-10 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
       style={{ left: `${card.circle.x}%`, top: `${card.circle.y}%` }}
     >
-      {/* Active state — expanding ring pulse */}
-      {isActive && (
-        <>
-          <motion.span
-            className="absolute inset-0 rounded-full pointer-events-none"
-            initial={{ scale: 1, opacity: 0.6 }}
-            animate={{ scale: [1, 2.2, 1], opacity: [0.6, 0, 0.6] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
-            style={{ backgroundColor: card.hex }}
-          />
-          <motion.span
-            className="absolute inset-0 rounded-full pointer-events-none"
-            initial={{ scale: 1, opacity: 0.4 }}
-            animate={{ scale: [1, 3.2, 1], opacity: [0.4, 0, 0.4] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut", delay: 0.4 }}
-            style={{ backgroundColor: card.hex }}
-          />
-        </>
-      )}
-
-      {/* Circle itself — animated size + glow */}
-      <motion.span
-        className="block rounded-full relative"
+      <motion.svg
+        viewBox="-1.4 -1.4 2.8 2.8"
+        initial={false}
         animate={{
-          width: isActive ? 18 : 10,
-          height: isActive ? 18 : 10,
-          opacity: isActive ? 1 : 0.55,
-          boxShadow: isActive
-            ? `0 0 24px 4px ${card.hex}AA, 0 0 0 2px ${card.hex}40`
-            : `0 0 0 0 ${card.hex}00`,
+          width: size,
+          height: size,
+          opacity: isActive ? 1 : 0.6,
         }}
-        transition={{ duration: 0.55, ease }}
-        style={{ backgroundColor: card.hex }}
-      />
+        transition={{ duration: 0.4, ease }}
+        aria-hidden
+      >
+        {/* Filled hex — the dot itself */}
+        <polygon
+          points={HEX_POINTS}
+          fill={card.hex}
+          stroke={card.hex}
+          strokeWidth={0.08}
+          strokeLinejoin="round"
+        />
+        {/* Outline ring on active — discrete, not a glow */}
+        {isActive && (
+          <motion.polygon
+            points={HEX_POINTS}
+            fill="none"
+            stroke={card.hex}
+            strokeWidth={0.08}
+            strokeLinejoin="round"
+            initial={{ scale: 1, opacity: 0 }}
+            animate={{ scale: 1.55, opacity: 0.45 }}
+            transition={{ duration: 0.4, ease }}
+            style={{ transformOrigin: "center" }}
+          />
+        )}
+      </motion.svg>
     </button>
   );
 }
@@ -350,7 +374,7 @@ export function Concept() {
 
           {/* Path circles — each is a card's origin point + clickable indicator */}
           {cards.map((c, i) => (
-            <PathCircle
+            <PathHex
               key={c.id}
               card={c}
               isActive={i === activeIdx}
@@ -406,44 +430,62 @@ export function Concept() {
                   transition: { duration: 0.35, ease },
                 }}
                 transition={{ duration: 0.7, ease }}
-                className="rounded-[20px] border border-white/10 bg-[#121212] p-4 shadow-2xl relative overflow-hidden"
-                style={{ 
+                className="rounded-[16px] border border-white/[0.08] bg-ink-surface/95 p-5 lg:p-6 relative overflow-hidden text-left"
+                style={{
                   transformOrigin: "center center",
-                  boxShadow: `0 0 40px -10px ${card.hex}20, 0 10px 25px -5px rgba(0,0,0,0.5)`
+                  boxShadow:
+                    "0 24px 56px -28px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05)",
                 }}
               >
-                {/* Subtle accent glow */}
-                <div 
-                  className="absolute -top-10 -right-10 size-20 blur-[30px] opacity-20 pointer-events-none"
-                  style={{ background: card.hex }}
+                {/* Top accent rule — single 1px line in the active accent.
+                    Replaces the soft accent glow + corner blob. */}
+                <div
+                  className="absolute left-0 right-0 top-0 h-px"
+                  style={{ backgroundColor: card.hex, opacity: 0.7 }}
+                  aria-hidden
                 />
 
-                <motion.div
-                  animate={{ y: [-1, 1, -1] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="flex items-center gap-4 text-left relative z-10"
-                >
-                  <div
-                    className={`size-11 rounded-[12px] inline-flex items-center justify-center shrink-0 shadow-inner border border-white/5`}
-                    style={{ 
-                      backgroundColor: `${card.hex}15`,
-                      color: card.hex 
-                    }}
+                {/* Header row — accent number left, naked accent icon right */}
+                <div className="flex items-start justify-between gap-4">
+                  <span
+                    className="font-display font-semibold tracking-[-0.04em] leading-none num-tabular text-[40px] lg:text-[44px]"
+                    style={{ color: card.hex }}
+                  >
+                    {String(activeIdx + 1).padStart(2, "0")}
+                  </span>
+                  <span
+                    className="shrink-0 pt-1.5"
+                    style={{ color: card.hex }}
+                    aria-hidden
                   >
                     {(() => {
                       const Icon = card.Icon;
-                      return <Icon size={20} />;
+                      return <Icon size={22} />;
                     })()}
-                  </div>
-                  <div className="min-w-0 pr-2">
-                    <div className="text-base font-bold text-text-primary tracking-tight leading-tight mb-0.5">
-                      {card.title}
-                    </div>
-                    <div className="text-sm text-text-secondary leading-normal opacity-80">
-                      {card.body}
-                    </div>
-                  </div>
-                </motion.div>
+                  </span>
+                </div>
+
+                {/* Title + body */}
+                <h3 className="mt-md font-display font-semibold text-text-primary tracking-[-0.02em] leading-[1.2] text-balance text-[19px] lg:text-[21px]">
+                  {card.title}
+                </h3>
+                <p className="mt-2 text-[14px] leading-[1.6] text-text-secondary text-pretty">
+                  {card.body}
+                </p>
+
+                {/* Footer rule — principle index */}
+                <div className="mt-md pt-3 border-t border-white/[0.06] flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-text-tertiary num-tabular">
+                  <span>
+                    principle {String(activeIdx + 1).padStart(2, "0")} / 06
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span
+                      className="size-1.5 rounded-full"
+                      style={{ backgroundColor: card.hex }}
+                    />
+                    {card.id}
+                  </span>
+                </div>
               </motion.div>
             </AnimatePresence>
           </div>
