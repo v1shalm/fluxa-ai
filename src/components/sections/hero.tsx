@@ -577,8 +577,8 @@ export function Hero() {
       className="relative pt-[140px] pb-2xl overflow-hidden"
     >
       <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px]">
-        <div className="grid lg:grid-cols-[1fr_auto] items-start gap-md lg:gap-2xl">
-          <div className="lg:max-w-[680px]">
+        <div className="grid lg:grid-cols-[1.4fr_0.6fr] items-start gap-md lg:gap-2xl">
+          <div>
             <motion.h1
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -604,7 +604,7 @@ export function Hero() {
             </motion.h1>
           </div>
 
-          <div className="flex flex-col gap-8 lg:mt-4 w-full lg:w-[400px]">
+          <div className="flex flex-col gap-8 lg:mt-4 w-full lg:max-w-[440px] lg:ml-auto">
             <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}

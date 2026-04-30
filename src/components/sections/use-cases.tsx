@@ -560,7 +560,7 @@ export function UseCases() {
             >
               {cell.layout === "horizontal" ? (
                 // Featured wide cell — text left, mock right
-                <div className="grid lg:grid-cols-[minmax(280px,1fr)_minmax(0,1.3fr)] gap-md p-6 lg:p-8 min-h-[400px]">
+                <div className="grid lg:grid-cols-[minmax(280px,1fr)_minmax(0,1.3fr)] gap-md p-6 lg:p-8 md:min-h-[400px]">
                   <div className="flex flex-col justify-between">
                     <h3 className="font-display font-semibold tracking-[-0.025em] leading-[1.05] text-text-primary text-d3 max-w-[360px]">
                       {cell.title}
