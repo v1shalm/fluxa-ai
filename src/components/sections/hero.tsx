@@ -577,8 +577,8 @@ export function Hero() {
       className="relative pt-[140px] pb-2xl overflow-hidden"
     >
       <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px]">
-        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-md lg:gap-xl items-start">
-          <div>
+        <div className="grid lg:grid-cols-[1fr_auto] items-start gap-md lg:gap-2xl">
+          <div className="lg:max-w-[680px]">
             <motion.h1
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -604,12 +604,12 @@ export function Hero() {
             </motion.h1>
           </div>
 
-          <div className="flex flex-col gap-8 lg:mt-4">
+          <div className="flex flex-col gap-8 lg:mt-4 w-full lg:w-[400px]">
             <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.45, ease }}
-              className="max-w-[480px] text-lg text-text-secondary text-pretty"
+              className="text-lg text-text-secondary text-pretty"
             >
               Wire LLMs, tools, and data on a typed canvas. Deploy as an
               observable API from one workflow file — no notebooks, no rewrites.
