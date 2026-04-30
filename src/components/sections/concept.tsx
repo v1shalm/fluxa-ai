@@ -366,7 +366,7 @@ export function Concept() {
         </motion.h2>
 
         <div
-          className="relative mt-2xl mx-auto max-w-[800px] aspect-[800/360]"
+          className="relative mt-2xl mx-auto max-w-[1040px] aspect-[1040/440]"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
@@ -430,62 +430,27 @@ export function Concept() {
                   transition: { duration: 0.35, ease },
                 }}
                 transition={{ duration: 0.7, ease }}
-                className="rounded-[16px] border border-white/[0.08] bg-ink-surface/95 p-5 lg:p-6 relative overflow-hidden text-left"
+                className="rounded-[14px] border border-white/[0.08] bg-ink-surface/95 px-5 py-4 lg:px-6 lg:py-5 relative text-left"
                 style={{
                   transformOrigin: "center center",
                   boxShadow:
-                    "0 24px 56px -28px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05)",
+                    "0 24px 56px -28px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)",
                 }}
               >
-                {/* Top accent rule — single 1px line in the active accent.
-                    Replaces the soft accent glow + corner blob. */}
-                <div
-                  className="absolute left-0 right-0 top-0 h-px"
-                  style={{ backgroundColor: card.hex, opacity: 0.7 }}
-                  aria-hidden
-                />
+                {/* Eyebrow — small mono index in the active accent */}
+                <span
+                  className="text-[10px] uppercase tracking-[0.2em] num-tabular"
+                  style={{ color: card.hex }}
+                >
+                  {String(activeIdx + 1).padStart(2, "0")} / 06
+                </span>
 
-                {/* Header row — accent number left, naked accent icon right */}
-                <div className="flex items-start justify-between gap-4">
-                  <span
-                    className="font-display font-semibold tracking-[-0.04em] leading-none num-tabular text-[40px] lg:text-[44px]"
-                    style={{ color: card.hex }}
-                  >
-                    {String(activeIdx + 1).padStart(2, "0")}
-                  </span>
-                  <span
-                    className="shrink-0 pt-1.5"
-                    style={{ color: card.hex }}
-                    aria-hidden
-                  >
-                    {(() => {
-                      const Icon = card.Icon;
-                      return <Icon size={22} />;
-                    })()}
-                  </span>
-                </div>
-
-                {/* Title + body */}
-                <h3 className="mt-md font-display font-semibold text-text-primary tracking-[-0.02em] leading-[1.2] text-balance text-[19px] lg:text-[21px]">
+                <h3 className="mt-2 font-display font-semibold text-text-primary tracking-[-0.02em] leading-[1.18] text-balance text-[18px] lg:text-[19px]">
                   {card.title}
                 </h3>
-                <p className="mt-2 text-[14px] leading-[1.6] text-text-secondary text-pretty">
+                <p className="mt-1.5 text-[13.5px] leading-[1.55] text-text-secondary text-pretty">
                   {card.body}
                 </p>
-
-                {/* Footer rule — principle index */}
-                <div className="mt-md pt-3 border-t border-white/[0.06] flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-text-tertiary num-tabular">
-                  <span>
-                    principle {String(activeIdx + 1).padStart(2, "0")} / 06
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <span
-                      className="size-1.5 rounded-full"
-                      style={{ backgroundColor: card.hex }}
-                    />
-                    {card.id}
-                  </span>
-                </div>
               </motion.div>
             </AnimatePresence>
           </div>
