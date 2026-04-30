@@ -152,123 +152,6 @@ const BRIGHT_WINDOW  = 0.035;   // half-width of the panel "flash" in cycle prog
 // Pulse traverses LINE_X1 → LINE_X2 over [0, DRAW_END] of the cycle.
 const arrivalProgress = (i: number) => DRAW_END * (panelCenters[i] / VB_W);
 
-// ─── Vertical mobile pipeline ─────────────────────────────────────────────
-// On phones the wide-and-short SVG canvas shrinks the panels until they're
-// unreadable. This component is the mobile counterpart: the same seven
-// panels stacked top-to-bottom, with the same brightness wave traveling
-// down the stack on the same CYCLE_DURATION timeline. INPUT / OUTPUT
-// anchors flank the column.
-function VerticalPipelineCanvas() {
-  return (
-    <div className="mx-auto w-full max-w-[360px] px-2">
-      {/* Top anchor */}
-      <div className="flex flex-col items-center gap-1.5">
-        <span
-          className="size-2.5 rounded-[3px] border-[1.5px]"
-          style={{ borderColor: panels[0].stroke }}
-          aria-hidden
-        />
-        <span
-          className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-tertiary"
-          style={{ color: "rgba(255,255,255,0.42)" }}
-        >
-          INPUT
-        </span>
-      </div>
-
-      {/* Connector — short tick from anchor to first panel */}
-      <div
-        className="mx-auto my-3 w-px h-4"
-        style={{ backgroundColor: panels[0].stroke, opacity: 0.35 }}
-        aria-hidden
-      />
-
-      {/* Stacked panels */}
-      <div className="flex flex-col gap-2">
-        {panels.map((p, i) => {
-          // Brightness wave — peaks at fraction (i+0.5)/N of the cycle.
-          const ap = (i + 0.5) / panels.length;
-          const t1 = Math.max(0.001, ap - 0.06);
-          const t2 = Math.min(0.999, ap + 0.08);
-          return (
-            <motion.div
-              key={i}
-              className="relative h-14 rounded-[10px] overflow-hidden"
-              style={{
-                border: `1.5px solid ${p.stroke}`,
-                background: `linear-gradient(135deg, ${p.fillTop}, ${p.fillBottom})`,
-              }}
-              initial={{ opacity: 0.6 }}
-              animate={{
-                opacity: [0.6, 0.6, 1, 0.72, 0.6],
-                boxShadow: [
-                  "0 0 0 transparent",
-                  "0 0 0 transparent",
-                  `0 0 18px ${p.stroke}aa, inset 0 0 14px ${p.stroke}55`,
-                  `0 0 6px ${p.stroke}55`,
-                  "0 0 0 transparent",
-                ],
-              }}
-              transition={{
-                duration: CYCLE_DURATION,
-                repeat: Infinity,
-                ease: "easeOut",
-                delay: PULSE_DELAY,
-                times: [0, t1, ap, t2, 1],
-              }}
-            >
-              {/* Center node — flares with the wave */}
-              <motion.span
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 block rounded-full"
-                style={{ backgroundColor: p.stroke }}
-                initial={{ width: 6, height: 6, boxShadow: "none" }}
-                animate={{
-                  width: [6, 6, 10, 7, 6],
-                  height: [6, 6, 10, 7, 6],
-                  boxShadow: [
-                    "none",
-                    "none",
-                    `0 0 14px ${p.stroke}`,
-                    `0 0 4px ${p.stroke}88`,
-                    "none",
-                  ],
-                }}
-                transition={{
-                  duration: CYCLE_DURATION,
-                  repeat: Infinity,
-                  ease: "easeOut",
-                  delay: PULSE_DELAY,
-                  times: [0, t1, ap, t2, 1],
-                }}
-              />
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* Bottom connector tick + OUTPUT anchor */}
-      <div
-        className="mx-auto my-3 w-px h-4"
-        style={{ backgroundColor: panels[panels.length - 1].stroke, opacity: 0.35 }}
-        aria-hidden
-      />
-      <div className="flex flex-col items-center gap-1.5">
-        <span
-          className="size-2.5 rounded-[3px] border-[1.5px]"
-          style={{ borderColor: panels[panels.length - 1].stroke }}
-          aria-hidden
-        />
-        <span
-          className="font-mono text-[10px] uppercase tracking-[0.2em]"
-          style={{ color: "rgba(255,255,255,0.42)" }}
-        >
-          OUTPUT
-        </span>
-      </div>
-    </div>
-  );
-}
-
 function PipelineCanvas() {
   return (
     <div className="relative w-full" style={{ aspectRatio: `${VB_W} / ${VB_H}` }}>
@@ -761,14 +644,7 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.6, ease }}
           className="mt-2xl mx-auto"
         >
-          {/* Desktop: wide horizontal SVG. Mobile: vertical-stacked panels
-              with the same color spectrum and wave-of-brightness timing. */}
-          <div className="hidden md:block">
-            <PipelineCanvas />
-          </div>
-          <div className="md:hidden">
-            <VerticalPipelineCanvas />
-          </div>
+          <PipelineCanvas />
         </motion.div>
 
         <motion.div
