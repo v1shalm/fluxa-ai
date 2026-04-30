@@ -28,9 +28,69 @@ function FluxaSparkIcon({ size = 20, className }: { size?: number; className?: s
 
 // ── Cell 1: AI Agents — Animated live-processing pipeline ─────────────────
 // Shows an agent processing pipeline with animated data flowing through nodes
+function AgentMobileSummary() {
+  // Three-step flow chip strip — same brand language as the desktop mock
+  // (status dot + mono caption + metric) but no absolute positioning.
+  const steps = [
+    { hex: "#22D3EE", label: "request", value: "POST /event" },
+    { hex: "#00FF66", label: "agent",   value: "99.82%" },
+    { hex: "#FF4DCC", label: "reply",   value: "2.4s" },
+  ];
+  return (
+    <div className="md:hidden p-6">
+      <div className="flex items-stretch gap-1.5">
+        {steps.map((s, i) => (
+          <div key={s.label} className="contents">
+            <div
+              className="flex-1 min-w-0 rounded-md px-2.5 py-2 border"
+              style={{ borderColor: `${s.hex}40` }}
+            >
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="size-1.5 rounded-full shrink-0"
+                  style={{ backgroundColor: s.hex }}
+                />
+                <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-text-tertiary">
+                  {s.label}
+                </span>
+              </div>
+              <div
+                className="mt-1 font-mono text-[10px] num-tabular truncate"
+                style={{ color: i === 1 ? s.hex : "var(--color-text-secondary, #A8A8A8)" }}
+              >
+                {s.value}
+              </div>
+            </div>
+            {i < steps.length - 1 && (
+              <svg
+                width="10"
+                height="8"
+                viewBox="0 0 10 8"
+                className="text-text-tertiary self-center shrink-0"
+                fill="none"
+                aria-hidden
+              >
+                <path
+                  d="M0 4h7M5 1.5L8 4 5 6.5"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function AgentNotifications() {
   return (
-    <div className="relative h-full min-h-[340px] w-full flex items-center justify-center p-6 overflow-hidden">
+    <>
+    <AgentMobileSummary />
+    <div className="relative h-full min-h-[340px] w-full hidden md:flex items-center justify-center p-6 overflow-hidden">
       {/* Background data pulses */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" aria-hidden>
         <div className="absolute inset-0 bg-grid" />
@@ -189,11 +249,42 @@ function AgentNotifications() {
         </motion.div>
       </div>
     </div>
+    </>
   );
 }
 
 // ── Cell 2: Integrations — Orbiting logo ring ─────────────────────────────
 // Animated ring of integrations orbiting around a central Fluxa icon
+function IntegrationsMobileSummary() {
+  // Five monogram tiles + "+ N more" indicator. Color = each platform's
+  // accent. No colored-tile wrapping; the letter itself carries the color.
+  const items = [
+    { letter: "S", color: "#635BFF" },
+    { letter: "S", color: "#EC4899" },
+    { letter: "G", color: "#FFFFFF" },
+    { letter: "N", color: "#FFFFFF" },
+    { letter: "P", color: "#3B82F6" },
+  ];
+  return (
+    <div className="md:hidden p-6">
+      <div className="flex items-center gap-2">
+        {items.map((it, i) => (
+          <div
+            key={i}
+            className="size-9 rounded-[8px] border border-white/10 inline-flex items-center justify-center font-mono text-[14px] font-semibold"
+            style={{ color: it.color, backgroundColor: "rgba(255,255,255,0.02)" }}
+          >
+            {it.letter}
+          </div>
+        ))}
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-text-tertiary ml-1">
+          + 55
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function IntegrationsMock() {
   const integrations = [
     { 
@@ -265,7 +356,9 @@ function IntegrationsMock() {
   ];
 
   return (
-    <div className="relative h-full min-h-[320px] w-full flex items-center justify-center p-8 overflow-hidden bg-[#0A0A0A]">
+    <>
+    <IntegrationsMobileSummary />
+    <div className="relative h-full min-h-[320px] w-full hidden md:flex items-center justify-center p-8 overflow-hidden bg-[#0A0A0A]">
       {/* Background depth grid */}
       <div 
         className="absolute inset-0 opacity-[0.05] pointer-events-none" 
@@ -391,14 +484,77 @@ function IntegrationsMock() {
         />
       ))}
     </div>
+    </>
   );
 }
 
 // ── Cell 3: Document parsing — Animated scan effect ───────────────────────
 // Shows a document being scanned with a laser line extracting data fields
+function ContractMobileSummary() {
+  // Doc icon → extracted-fields list. Two compact blocks separated by an
+  // arrow. Communicates "PDF in, structured rows out" without the laser
+  // scan animation.
+  return (
+    <div className="md:hidden p-6">
+      <div className="flex items-stretch gap-2">
+        {/* Document */}
+        <div className="rounded-md border border-white/10 px-3 py-2.5 flex flex-col items-center justify-center gap-1.5 shrink-0 bg-white/[0.02]">
+          <svg width="22" height="26" viewBox="0 0 22 26" fill="none" aria-hidden>
+            <path
+              d="M3 1h11l5 5v17a2 2 0 01-2 2H3a2 2 0 01-2-2V3a2 2 0 012-2z"
+              stroke="rgba(255,255,255,0.55)"
+              strokeWidth="1.4"
+              strokeLinejoin="round"
+            />
+            <path d="M13 1v5h5" stroke="rgba(255,255,255,0.55)" strokeWidth="1.4" strokeLinejoin="round" />
+            <path d="M5 12h10M5 16h10M5 20h6" stroke="rgba(255,255,255,0.3)" strokeWidth="1.2" strokeLinecap="round" />
+          </svg>
+          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-text-tertiary">
+            contract.pdf
+          </span>
+        </div>
+
+        {/* Arrow */}
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 10 10"
+          className="text-text-tertiary self-center shrink-0"
+          fill="none"
+          aria-hidden
+        >
+          <path
+            d="M0 5h7M5 2.5L8 5 5 7.5"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+
+        {/* Extracted fields */}
+        <div className="flex-1 min-w-0 rounded-md border border-flux-yellow/30 px-3 py-2.5 flex flex-col gap-1.5">
+          {[
+            { k: "name",   v: "Acme Corp" },
+            { k: "amount", v: "$24,500" },
+            { k: "date",   v: "2024-04-15" },
+          ].map((f) => (
+            <div key={f.k} className="flex items-center justify-between gap-3 font-mono text-[10px]">
+              <span className="text-text-tertiary">{f.k}</span>
+              <span className="text-text-primary num-tabular truncate">{f.v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ContractMock() {
   return (
-    <div className="relative h-full min-h-[240px] w-full flex items-center justify-center py-4 px-4 overflow-hidden">
+    <>
+    <ContractMobileSummary />
+    <div className="relative h-full min-h-[240px] w-full hidden md:flex items-center justify-center py-4 px-4 overflow-hidden">
       {/* Background contract mockup */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -491,6 +647,7 @@ function ContractMock() {
         </motion.div>
       </motion.div>
     </div>
+    </>
   );
 }
 
@@ -588,7 +745,7 @@ export function UseCases() {
                 </div>
               ) : (
                 // Standard cell — mock on top, text below
-                <div className="flex flex-col h-full min-h-[420px]">
+                <div className="flex flex-col h-full md:min-h-[420px]">
                   <div className="flex-1 min-h-0 relative">
                     <cell.Mock />
                   </div>
