@@ -576,7 +576,7 @@ export function Hero() {
       id="top"
       className="relative pt-[140px] pb-2xl overflow-hidden"
     >
-      <div className="mx-auto w-full max-w-[1680px] px-6 md:px-10 lg:px-20 xl:px-[120px]">
+      <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px]">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-md lg:gap-xl items-start">
           <div>
             <motion.h1

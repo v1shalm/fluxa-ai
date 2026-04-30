@@ -366,46 +366,54 @@ export function Concept() {
         </motion.h2>
 
         <div
-          className="relative mt-2xl mx-auto max-w-[1040px] aspect-[1040/440]"
+          className="relative mt-2xl mx-auto max-w-[1040px] min-h-[260px] md:min-h-0 md:aspect-[1040/440]"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
-          <DashedFrame accentHex={card.hex} />
+          {/* Polygon framing (dashed frame, hex markers, connector line) is
+              decorative and reads as cramped on narrow viewports — hide on
+              sub-md and let the card own the section. Auto-rotation still
+              fires so the content cycles. ─────────────────────────────── */}
+          <div className="hidden md:contents">
+            <DashedFrame accentHex={card.hex} />
 
-          {/* Path circles — each is a card's origin point + clickable indicator */}
-          {cards.map((c, i) => (
-            <PathHex
-              key={c.id}
-              card={c}
-              isActive={i === activeIdx}
-              onClick={() => setActiveIdx(i)}
-            />
-          ))}
+            {/* Path circles — each is a card's origin point + clickable indicator */}
+            {cards.map((c, i) => (
+              <PathHex
+                key={c.id}
+                card={c}
+                isActive={i === activeIdx}
+                onClick={() => setActiveIdx(i)}
+              />
+            ))}
 
-          {/* Animated connector line — from active circle to card center */}
-          <svg
-            className="absolute inset-0 size-full pointer-events-none"
-            viewBox="0 0 800 360"
-            preserveAspectRatio="none"
-            aria-hidden
-          >
-            <motion.line
-              key={`line-${activeIdx}`}
-              x1={(card.circle.x / 100) * 800}
-              y1={(card.circle.y / 100) * 360}
-              x2={400}
-              y2={180}
-              stroke={card.hex}
-              strokeWidth="1"
-              strokeDasharray="2 4"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 0.5 }}
-              transition={{ duration: 0.5, delay: 0.15, ease }}
-            />
-          </svg>
+            {/* Animated connector line — from active circle to card center */}
+            <svg
+              className="absolute inset-0 size-full pointer-events-none"
+              viewBox="0 0 800 360"
+              preserveAspectRatio="none"
+              aria-hidden
+            >
+              <motion.line
+                key={`line-${activeIdx}`}
+                x1={(card.circle.x / 100) * 800}
+                y1={(card.circle.y / 100) * 360}
+                x2={400}
+                y2={180}
+                stroke={card.hex}
+                strokeWidth="1"
+                strokeDasharray="2 4"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.5 }}
+                transition={{ duration: 0.5, delay: 0.15, ease }}
+              />
+            </svg>
+          </div>
 
-          {/* Card — emerges from the active circle's position, settles at center */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(440px,calc(100%-80px))]">
+          {/* Card — centered on md+, naturally positioned on mobile.
+              `md:absolute` flips between the centered overlay (desktop) and
+              the in-flow block (mobile, where the polygon framing is hidden). */}
+          <div className="md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 mx-auto w-full max-w-[440px] md:w-[min(440px,calc(100%-80px))]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={card.id}
