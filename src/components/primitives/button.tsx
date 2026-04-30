@@ -18,23 +18,36 @@ type Props = {
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-flux-green text-black hover:brightness-110 hover:shadow-[0_8px_32px_-8px_rgba(0,255,102,0.45)]",
+    // Layered chrome: inset top highlight → solid mint → ambient outer glow.
+    // Hover deepens the glow and lifts the button 1px.
+    [
+      "bg-flux-green text-black",
+      "shadow-[inset_0_1px_0_rgba(255,255,255,0.35),inset_0_-1px_0_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.4),0_8px_24px_-10px_rgba(0,255,102,0.55)]",
+      "hover:brightness-[1.04]",
+      "hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_0_rgba(0,0,0,0.12),0_2px_4px_rgba(0,0,0,0.4),0_16px_36px_-10px_rgba(0,255,102,0.7)]",
+      "hover:-translate-y-px",
+    ].join(" "),
   secondary:
-    "bg-transparent text-text-primary border border-ink-line hover:border-text-secondary hover:bg-white/[0.03]",
+    [
+      "bg-white/[0.025] text-text-primary border border-white/[0.08]",
+      "shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
+      "hover:bg-white/[0.05] hover:border-white/[0.14]",
+      "hover:-translate-y-px",
+    ].join(" "),
   ghost:
     "bg-transparent text-text-secondary hover:text-text-primary",
 };
 
 const sizes: Record<Size, string> = {
   md: "h-10 px-4 text-[14px]",
-  lg: "h-12 px-5 text-[15px]",
+  lg: "h-12 px-[22px] text-[15px]",
 };
 
 export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, Props>(
   function Button({ variant = "primary", size = "md", className, children, href, type = "button", ...motionProps }, ref) {
     const classes = cn(
-      "inline-flex items-center justify-center gap-2 rounded-[10px] font-medium tracking-[-0.005em]",
-      "transition-[background-color,color,box-shadow,filter,scale] duration-200 ease-out-quart",
+      "inline-flex items-center justify-center gap-2 rounded-[10px] font-medium tracking-[-0.005em] will-change-transform",
+      "transition-[background-color,color,box-shadow,filter,transform,border-color] duration-200 ease-out-quart",
       "active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-flux-cyan/50",
       variants[variant],
       sizes[size],

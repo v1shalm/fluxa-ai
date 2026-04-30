@@ -324,7 +324,7 @@ export function Showcase() {
 
   return (
     <section id="product" ref={sectionRef} className="relative py-section overflow-visible">
-      <div className="mx-auto max-w-[1200px] px-6">
+      <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px]">
         <motion.h2
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -393,12 +393,12 @@ export function Showcase() {
                   animate={
                     activeStep === step.id
                       ? {
-                          borderColor: accentHex[step.id] + "60",
-                          backgroundColor: accentHex[step.id] + "10",
+                          borderColor: accentHex[step.id],
+                          backgroundColor: `${accentHex[step.id]}20`, // Hex-alpha works better when not animating to 'transparent'
                         }
                       : {
-                          borderColor: "#262626",
-                          backgroundColor: "transparent",
+                          borderColor: "rgba(255,255,255,0.1)",
+                          backgroundColor: "rgba(255,255,255,0)",
                         }
                   }
                   transition={{ duration: 0.4, ease }}

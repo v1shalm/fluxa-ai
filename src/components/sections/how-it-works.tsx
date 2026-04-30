@@ -31,7 +31,7 @@ const colorHex = { cyan: "#22D3EE", green: "#00FF66", pink: "#FF4DCC" } as const
 export function HowItWorks() {
   return (
     <section className="py-section">
-      <div className="mx-auto max-w-[1200px] px-6">
+      <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px]">
         {/* Heading row — left-aligned, restrained. */}
         <div className="flex flex-wrap items-end justify-between gap-6 mb-20">
           <div>

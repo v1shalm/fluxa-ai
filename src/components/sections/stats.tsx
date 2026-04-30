@@ -60,7 +60,7 @@ const stats = [
 export function Stats() {
   return (
     <section className="py-section">
-      <div className="mx-auto max-w-[1200px] px-6">
+      <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px]">
         <motion.h2
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}

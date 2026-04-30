@@ -95,15 +95,7 @@ function CodeBlock() {
 export function Developer() {
   return (
     <section id="docs" className="relative py-section">
-      <div
-        className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[400px] -z-10 opacity-60"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 50% at 70% 50%, rgba(0,255,102,0.06), transparent 70%)",
-        }}
-        aria-hidden
-      />
-      <div className="mx-auto max-w-[1200px] px-6 grid lg:grid-cols-[1fr_1.15fr] gap-12 lg:gap-16 items-start">
+      <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px] grid lg:grid-cols-[1fr_1.15fr] gap-12 lg:gap-16 items-start">
         <div className="flex flex-col">
           {/* Eyebrow — small anchor that establishes the section's start. */}
           <motion.div
@@ -144,8 +136,8 @@ export function Developer() {
                 transition={{ duration: 0.4, delay: 0.05 * i, ease: [0.16, 1, 0.3, 1] }}
                 className="flex items-start gap-3 text-[14.5px] leading-[1.5] text-text-secondary"
               >
-                <span className="mt-[3px] inline-flex size-[18px] shrink-0 items-center justify-center rounded-[5px] bg-flux-green/15 text-flux-green">
-                  <CheckIcon size={11} />
+                <span className="mt-[3px] shrink-0 text-flux-green">
+                  <CheckIcon size={14} />
                 </span>
                 {f}
               </motion.li>

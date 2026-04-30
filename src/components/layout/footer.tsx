@@ -1,8 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { GitHubIcon, ArrowRight } from "@/components/primitives/icons";
-import { Block } from "@/components/primitives/block";
+import { GitHubIcon } from "@/components/primitives/icons";
 import { Button } from "@/components/primitives/button";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -45,19 +44,7 @@ export function Footer() {
 
       {/* TOP — Bold tagline section */}
       <section className="relative">
-        {/* Atmosphere */}
-        <div
-          className="absolute inset-0 -z-10 opacity-90"
-          style={{
-            background:
-              "radial-gradient(circle at 50% 100%, rgba(0,255,102,0.1), transparent 50%), radial-gradient(circle at 50% 0%, rgba(34,211,238,0.05), transparent 40%)",
-          }}
-          aria-hidden
-        />
-
-
-
-        <div className="mx-auto max-w-[1200px] px-6 pt-3xl pb-2xl">
+        <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px] pt-3xl pb-2xl">
           <div className="grid lg:grid-cols-[1.4fr_1fr] gap-xl lg:gap-2xl items-end">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -85,8 +72,7 @@ export function Footer() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Button variant="primary" size="lg" href="#start" className="h-12 px-6">
-                    Start Building
-                    <ArrowRight size={14} />
+                    Start building
                   </Button>
                   <Button variant="secondary" size="lg" href="#docs" className="h-12 px-6">
                     Read the docs
@@ -104,7 +90,7 @@ export function Footer() {
 
       {/* MID — Link columns + brand */}
       <section className="border-t border-ink-line">
-        <div className="mx-auto max-w-[1200px] px-6 py-2xl grid lg:grid-cols-[1.4fr_3fr] gap-xl lg:gap-2xl">
+        <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px] py-2xl grid lg:grid-cols-[1.4fr_3fr] gap-xl lg:gap-2xl">
           {/* Brand column */}
           <div>
             <div className="flex items-center gap-2.5">
@@ -167,7 +153,7 @@ export function Footer() {
 
       {/* BOTTOM — bold filled wordmark + meta row */}
       <section className="relative border-t border-ink-line">
-        <div className="mx-auto max-w-[1200px] px-6 pt-md pb-2xs flex flex-wrap items-center justify-between gap-md">
+        <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px] pt-md pb-2xs flex flex-wrap items-center justify-between gap-md">
           <p className="text-xs text-text-tertiary">
             © 2026 Fluxa, Inc.
           </p>

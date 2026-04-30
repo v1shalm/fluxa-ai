@@ -122,7 +122,7 @@ const accentText: Record<Value["accent"], string> = {
 export function Values() {
   return (
     <section className="py-section">
-      <div className="mx-auto max-w-[1200px] px-6">
+      <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px]">
         <div>
           {values.map((v, i) => (
             <motion.article

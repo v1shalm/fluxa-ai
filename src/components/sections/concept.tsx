@@ -313,7 +313,7 @@ export function Concept() {
 
   return (
     <section className="relative py-section overflow-hidden">
-      <div className="relative mx-auto max-w-[1100px] px-6 text-center">
+      <div className="relative mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px] text-center">
         <motion.h2
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}

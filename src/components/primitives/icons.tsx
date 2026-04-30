@@ -23,31 +23,41 @@ export function ArrowRight({ size = 16, className }: IconProps) {
   );
 }
 
-export function PlayIcon({ size = 16, className }: IconProps) {
+// Duotone trace/waveform — represents live execution traces.
+export function TraceIcon({ size = 20, className }: IconProps) {
   return (
-    <svg width={size} height={size} className={className} {...baseProps}>
-      <path d="M8 5.5v13l11-6.5z" fill="currentColor" stroke="none" />
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M3 12h3l2-6 3 12 3-9 2 4h5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="3" cy="12" r="1.6" fill="currentColor" fillOpacity="0.45" />
+      <circle cx="21" cy="12" r="1.6" fill="currentColor" fillOpacity="0.45" />
     </svg>
   );
 }
 
 export function BlockIcon({ size = 20, className }: IconProps) {
   return (
-    <svg width={size} height={size} className={className} {...baseProps}>
-      <rect x="3" y="3" width="7" height="7" rx="1.5" />
-      <rect x="14" y="3" width="7" height="7" rx="1.5" />
-      <rect x="3" y="14" width="7" height="7" rx="1.5" />
-      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      {/* duotone fill — top-right is the "active" tile */}
+      <rect x="14" y="3" width="7" height="7" rx="1.5" fill="currentColor" fillOpacity="0.32" />
     </svg>
   );
 }
 
 export function ConnectIcon({ size = 20, className }: IconProps) {
   return (
-    <svg width={size} height={size} className={className} {...baseProps}>
-      <rect x="2" y="9" width="6" height="6" rx="1.5" />
-      <rect x="16" y="9" width="6" height="6" rx="1.5" />
-      <path d="M8 12h8" />
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none">
+      <rect x="2" y="8" width="7" height="8" rx="1.5" fill="currentColor" fillOpacity="0.32" />
+      <rect x="15" y="8" width="7" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M9 12h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -64,11 +74,12 @@ export function DeployIcon({ size = 20, className }: IconProps) {
 
 export function AgentIcon({ size = 20, className }: IconProps) {
   return (
-    <svg width={size} height={size} className={className} {...baseProps}>
-      <rect x="4" y="6" width="16" height="12" rx="3" />
-      <circle cx="9" cy="12" r="1.25" fill="currentColor" stroke="none" />
-      <circle cx="15" cy="12" r="1.25" fill="currentColor" stroke="none" />
-      <path d="M12 2v4" />
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none">
+      <path d="M12 3v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <rect x="4" y="6" width="16" height="12" rx="3" fill="currentColor" fillOpacity="0.18" />
+      <rect x="4" y="6" width="16" height="12" rx="3" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="9" cy="12" r="1.4" fill="currentColor" />
+      <circle cx="15" cy="12" r="1.4" fill="currentColor" />
     </svg>
   );
 }
@@ -107,17 +118,30 @@ export function ToolIcon({ size = 20, className }: IconProps) {
 
 export function ChatIcon({ size = 20, className }: IconProps) {
   return (
-    <svg width={size} height={size} className={className} {...baseProps}>
-      <path d="M5 5h14a2 2 0 012 2v8a2 2 0 01-2 2h-7l-5 4v-4H5a2 2 0 01-2-2V7a2 2 0 012-2z" />
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M5 5h14a2 2 0 012 2v8a2 2 0 01-2 2h-7l-5 4v-4H5a2 2 0 01-2-2V7a2 2 0 012-2z"
+        fill="currentColor"
+        fillOpacity="0.18"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      {/* tokens */}
+      <circle cx="9"  cy="11" r="1.1" fill="currentColor" />
+      <circle cx="12" cy="11" r="1.1" fill="currentColor" />
+      <circle cx="15" cy="11" r="1.1" fill="currentColor" />
     </svg>
   );
 }
 
 export function TerminalIcon({ size = 20, className }: IconProps) {
   return (
-    <svg width={size} height={size} className={className} {...baseProps}>
-      <rect x="3" y="4" width="18" height="16" rx="2" />
-      <path d="M7 9l3 3-3 3M13 15h4" />
+    <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="4" width="18" height="16" rx="2" fill="currentColor" fillOpacity="0.18" />
+      <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M7 9l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13 15h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }

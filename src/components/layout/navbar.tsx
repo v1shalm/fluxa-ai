@@ -9,7 +9,7 @@ import {
   MenuIcon,
   BlockIcon,
   AgentIcon,
-  PlayIcon,
+  TraceIcon,
   ConnectIcon,
   ChatIcon,
   TerminalIcon,
@@ -28,19 +28,20 @@ type ProductItem = {
 const productItems: ProductItem[] = [
   { Icon: BlockIcon,    title: "Workflow Builder", desc: "Visual canvas for AI workflows",     accent: "cyan",   href: "#builder" },
   { Icon: AgentIcon,    title: "AI Agents",        desc: "Multi-step agents with memory",       accent: "green",  href: "#agents" },
-  { Icon: PlayIcon,     title: "Live Tracing",     desc: "Inspect every run, every token",      accent: "lime",   href: "#tracing" },
+  { Icon: TraceIcon,    title: "Live Tracing",     desc: "Inspect every run, every token",      accent: "lime",   href: "#tracing" },
   { Icon: ChatIcon,     title: "Embedding",        desc: "Drop workflows into any app",         accent: "yellow", href: "#embedding" },
   { Icon: ConnectIcon,  title: "Integrations",     desc: "Connect to your existing stack",      accent: "pink",   href: "#integrations" },
   { Icon: TerminalIcon, title: "Fluxa CLI",        desc: "Ship workflows from your terminal",   accent: "purple", href: "#cli" },
 ];
 
-const accentBg: Record<ProductItem["accent"], string> = {
-  cyan:   "bg-flux-cyan/15 text-flux-cyan",
-  green:  "bg-flux-green/15 text-flux-green",
-  lime:   "bg-flux-lime/15 text-flux-lime",
-  yellow: "bg-flux-yellow/15 text-flux-yellow",
-  pink:   "bg-flux-pink/15 text-flux-pink",
-  purple: "bg-flux-purple/20 text-flux-purple",
+// Icon color class — the icon itself carries the accent. No tile, no rail.
+const accentText: Record<ProductItem["accent"], string> = {
+  cyan:   "text-flux-cyan",
+  green:  "text-flux-green",
+  lime:   "text-flux-lime",
+  yellow: "text-flux-yellow",
+  pink:   "text-flux-pink",
+  purple: "text-flux-purple",
 };
 
 const links = [
@@ -67,6 +68,7 @@ function FluxaLogo() {
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<number | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const openTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -88,19 +90,22 @@ export function Navbar() {
   };
   const handleMegaLeave = () => {
     if (openTimer.current) clearTimeout(openTimer.current);
-    closeTimer.current = setTimeout(() => setMegaOpen(false), 160);
+    closeTimer.current = setTimeout(() => {
+      setMegaOpen(false);
+      setHoveredItem(null);
+    }, 160);
   };
 
   return (
     // Plain <header>, fixed. NO transform on this element so descendants with
     // `fixed`/`absolute` resolve relative to it (or the viewport) correctly.
-    <header className="fixed top-0 inset-x-0 z-50 px-4 pt-3">
+    <header className="fixed top-0 inset-x-0 z-50 pt-3 px-6 md:px-10 lg:px-20 xl:px-[160px]">
       <motion.nav
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease }}
         className={cn(
-          "relative mx-auto max-w-[1200px]",
+          "relative mx-auto max-w-[2240px]",
           "flex items-center justify-between gap-2",
           "py-2 px-4 rounded-[18px]",
           "bg-ink/85 backdrop-blur-xl border border-ink-line",
@@ -160,8 +165,7 @@ export function Navbar() {
             Login
           </a>
           <Button variant="primary" size="md" href="#start">
-            Start Building
-            <ArrowRight size={14} />
+            Start building
           </Button>
           <button
             type="button"
@@ -195,129 +199,193 @@ export function Navbar() {
             {/* Invisible hover bridge to prevent menu from closing when moving mouse from nav to menu */}
             <div className="absolute -top-4 inset-x-0 h-4" />
 
-            <div className="rounded-[24px] border border-ink-line bg-ink/90 backdrop-blur-3xl p-3 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.8)] relative overflow-hidden">
-              {/* Subtle background glow */}
-              <div className="absolute -top-24 -left-24 size-48 bg-flux-cyan/10 blur-[60px] pointer-events-none" />
-              
-              <div className="relative grid grid-cols-12 gap-3">
-                {/* Left: Main Product Grid */}
-                <div className="col-span-12 lg:col-span-8 bg-white/[0.02] rounded-[18px] p-1 border border-white/[0.03]">
-                  <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+            <div className="rounded-[24px] border border-white/[0.06] bg-ink/95 backdrop-blur-3xl p-5 shadow-[0_40px_96px_-20px_rgba(0,0,0,0.85)] relative overflow-hidden">
+              {/* Layered ambient glows — subtle, not flashy */}
+              <div className="absolute -top-32 -left-24 size-64 rounded-full bg-flux-cyan/[0.08] blur-[80px] pointer-events-none" />
+              <div className="absolute -bottom-32 right-0 size-72 rounded-full bg-flux-green/[0.05] blur-[80px] pointer-events-none" />
+              {/* Top edge highlight */}
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent pointer-events-none" />
+
+              <div className="relative grid grid-cols-12 gap-5">
+                {/* ─── Left: modules grid ───────────────────────────── */}
+                <div className="col-span-12 lg:col-span-7" onMouseLeave={() => setHoveredItem(null)}>
+                  <div className="flex items-center justify-between mb-2 px-1">
                     <div className="flex items-center gap-2">
-                      <div className="size-1.5 rounded-full bg-flux-cyan" />
-                      <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest">Platform Core</span>
+                      <div className="size-1.5 rounded-full bg-flux-cyan animate-status" />
+                      <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-[0.2em]">Platform</span>
                     </div>
-                    <span className="text-[10px] font-medium text-text-tertiary/60 uppercase tracking-widest">{productItems.length} Modules</span>
+                    <span className="text-[10px] text-text-tertiary/50 num-tabular tracking-wider">{productItems.length} modules</span>
                   </div>
-                  
-                  <ul className="grid grid-cols-2 gap-1 pb-1">
-                    {productItems.map((item, i) => (
-                      <motion.li
-                        key={item.title}
-                        initial={{ opacity: 0, x: -4 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: 0.03 * i, ease }}
-                      >
-                        <a
-                          href={item.href}
-                          role="menuitem"
-                          className={cn(
-                            "group flex items-start gap-4 p-3.5 rounded-[14px]",
-                            "transition-all duration-200",
-                            "hover:bg-white/[0.05] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
-                          )}
+
+                  <ul className="grid grid-cols-2 gap-0.5">
+                    {productItems.map((item, i) => {
+                      const isActive = hoveredItem === i;
+                      return (
+                        <motion.li
+                          key={item.title}
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: 0.025 * i, ease }}
                         >
-                          <span
+                          <a
+                            href={item.href}
+                            role="menuitem"
+                            onMouseEnter={() => setHoveredItem(i)}
                             className={cn(
-                              "mt-0.5 size-10 inline-flex items-center justify-center rounded-[10px] shrink-0",
-                              accentBg[item.accent],
-                              "transition-all duration-300 ease-out-quart",
-                              "group-hover:scale-110 group-hover:shadow-[0_0_15px_-3px_currentColor]"
+                              "group relative flex items-start gap-3.5 p-3 rounded-[10px]",
+                              "transition-colors duration-150",
+                              isActive ? "bg-white/[0.035]" : "hover:bg-white/[0.02]"
                             )}
                           >
-                            <item.Icon size={20} />
-                          </span>
-                          <div className="min-w-0 pt-0.5">
-                            <div className="text-[14px] font-semibold text-text-primary tracking-tight flex items-center gap-2">
-                              {item.title}
-                              <ArrowRight size={10} className="opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0 transition-all duration-300 text-text-tertiary" />
+                            {/* Naked icon, no tile. Accent color carried by the icon itself. */}
+                            <span
+                              className={cn(
+                                "shrink-0 mt-0.5",
+                                accentText[item.accent],
+                                "transition-opacity duration-150",
+                                isActive ? "opacity-100" : "opacity-90"
+                              )}
+                            >
+                              <item.Icon size={20} />
+                            </span>
+
+                            <div className="min-w-0">
+                              <div className="text-[13.5px] font-medium text-text-primary tracking-[-0.005em]">
+                                {item.title}
+                              </div>
+                              <div className="mt-0.5 text-[12px] text-text-secondary/70 leading-[1.45]">
+                                {item.desc}
+                              </div>
                             </div>
-                            <div className="mt-1 text-[12px] text-text-secondary/70 leading-[1.5] group-hover:text-text-secondary transition-colors">
-                              {item.desc}
-                            </div>
-                          </div>
-                        </a>
-                      </motion.li>
-                    ))}
+                          </a>
+                        </motion.li>
+                      );
+                    })}
                   </ul>
                 </div>
 
-                {/* Right: Featured / Resources */}
-                <div className="col-span-12 lg:col-span-4 flex flex-col gap-3">
-                  <motion.a
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.15, ease }}
-                    href="#demo"
-                    role="menuitem"
-                    className="group relative flex-1 rounded-[18px] bg-gradient-to-br from-white/[0.04] to-transparent border border-white/[0.05] p-5 overflow-hidden hover:border-flux-cyan/30 transition-all duration-300"
-                  >
-                    <div className="absolute right-0 top-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
-                      <div className="grid grid-cols-3 gap-1.5" aria-hidden>
-                        {[...Array(6)].map((_, i) => (
-                          <div key={i} className="size-2.5 rounded-[1.5px] bg-white/40" />
-                        ))}
-                      </div>
-                    </div>
+                {/* ─── Right: hover-aware preview pane ──────────────── */}
+                <div className="col-span-12 lg:col-span-5">
+                  <div className="relative h-full min-h-[220px] rounded-[16px] border border-white/[0.06] bg-gradient-to-br from-white/[0.035] to-white/[0.005] p-5 overflow-hidden">
+                    <AnimatePresence mode="wait">
+                      {hoveredItem === null ? (
+                        <motion.div
+                          key="default"
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          transition={{ duration: 0.2, ease }}
+                          className="h-full flex flex-col"
+                        >
+                          {/* Live indicator */}
+                          <div className="flex items-center gap-2">
+                            <span className="relative inline-flex size-2">
+                              <span className="absolute inset-0 rounded-full bg-flux-green/40 animate-ping" />
+                              <span className="relative size-2 rounded-full bg-flux-green" />
+                            </span>
+                            <span className="text-[10px] font-semibold text-flux-green uppercase tracking-[0.2em]">Sandbox live</span>
+                          </div>
 
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-0.5">
-                        <div className="size-1 rounded-full bg-flux-green animate-pulse" />
-                        <div className="size-1 rounded-full bg-flux-green animate-pulse delay-75" />
-                        <div className="size-1 rounded-full bg-flux-green animate-pulse delay-150" />
-                      </div>
-                      <span className="text-[10px] font-bold text-flux-green uppercase tracking-widest">Environment Live</span>
-                    </div>
+                          <div className="mt-3 flex-1">
+                            <h3 className="text-[17px] font-semibold text-text-primary tracking-[-0.015em] leading-[1.25]">
+                              Run a workflow in your browser.
+                            </h3>
+                            <p className="mt-2 text-[12.5px] text-text-secondary leading-[1.55]">
+                              No install. Trace every node, every token. Fork the example and ship it.
+                            </p>
+                          </div>
 
-                    <div className="mt-4">
-                      <div className="text-base font-bold text-text-primary flex items-center gap-2">
-                        Try Live Demo
-                        <ArrowRight size={14} className="text-text-tertiary group-hover:translate-x-1 transition-transform" />
-                      </div>
-                      <p className="mt-1.5 text-xs text-text-secondary leading-[1.6]">
-                        Execute a real multi-step workflow directly in your browser. No account required.
-                      </p>
-                    </div>
-                  </motion.a>
+                          <a
+                            href="#demo"
+                            className="mt-4 inline-flex items-center gap-1.5 self-start text-[12.5px] font-medium text-flux-green hover:text-flux-green/80 transition-colors"
+                          >
+                            Open the playground
+                            <ArrowRight size={12} className="transition-transform group-hover:translate-x-0.5" />
+                          </a>
 
-                  <motion.a
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.22, ease }}
-                    href="#changelog"
-                    role="menuitem"
-                    className="group relative rounded-[18px] bg-white/[0.02] border border-white/[0.05] p-5 overflow-hidden hover:bg-white/[0.04] transition-all duration-300"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-bold text-text-tertiary uppercase tracking-wider">Latest Update</span>
-                      <span className="text-[10px] font-bold text-text-tertiary/40 num-tabular">v2.4.2</span>
-                    </div>
-                    
-                    <div className="text-base font-bold text-text-primary flex items-center gap-2">
-                      Changelog
-                      <ArrowRight size={14} className="text-text-tertiary group-hover:translate-x-1 transition-transform" />
-                    </div>
-                    <p className="mt-1.5 text-xs text-text-secondary leading-[1.6]">
-                      What shipped this week: New vector primitives and gRPC support.
-                    </p>
+                          {/* Decorative animated nodes — silent storytelling */}
+                          <svg
+                            viewBox="0 0 200 60"
+                            className="absolute -bottom-2 right-2 w-[180px] opacity-40 pointer-events-none"
+                            aria-hidden
+                          >
+                            <line x1="10" y1="30" x2="190" y2="30" stroke="url(#previewLine)" strokeWidth="1" />
+                            <defs>
+                              <linearGradient id="previewLine" x1="0" y1="0" x2="1" y2="0">
+                                <stop offset="0" stopColor="#22D3EE" stopOpacity="0" />
+                                <stop offset="0.3" stopColor="#22D3EE" stopOpacity="0.6" />
+                                <stop offset="0.7" stopColor="#A855F7" stopOpacity="0.6" />
+                                <stop offset="1" stopColor="#A855F7" stopOpacity="0" />
+                              </linearGradient>
+                            </defs>
+                            {[30, 70, 110, 150].map((cx, idx) => (
+                              <circle
+                                key={cx}
+                                cx={cx}
+                                cy="30"
+                                r="3"
+                                fill={["#22D3EE", "#00FF66", "#FFD400", "#A855F7"][idx]}
+                              />
+                            ))}
+                          </svg>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key={hoveredItem}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          transition={{ duration: 0.18, ease }}
+                          className="h-full flex flex-col"
+                        >
+                          <span className={cn("inline-flex", accentText[productItems[hoveredItem].accent])}>
+                            {(() => {
+                              const Icon = productItems[hoveredItem].Icon;
+                              return <Icon size={28} />;
+                            })()}
+                          </span>
 
-                    <div className="mt-4 h-1 w-full rounded-full bg-white/5 overflow-hidden">
-                      <div 
-                        className="h-full w-2/3 rounded-full"
-                        style={{ background: "linear-gradient(90deg, #00FF66, #22D3EE)" }}
-                      />
-                    </div>
-                  </motion.a>
+                          <h3 className="mt-4 text-[17px] font-semibold text-text-primary tracking-[-0.015em]">
+                            {productItems[hoveredItem].title}
+                          </h3>
+                          <p className="mt-1.5 text-[12.5px] text-text-secondary leading-[1.55] flex-1">
+                            {productItems[hoveredItem].desc}.
+                          </p>
+
+                          <a
+                            href={productItems[hoveredItem].href}
+                            className="mt-4 inline-flex items-center gap-1.5 self-start text-[12.5px] font-medium text-text-primary hover:text-flux-green transition-colors"
+                          >
+                            Read the docs
+                            <ArrowRight size={12} />
+                          </a>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </div>
+
+              {/* ─── Footer strip — secondary links + version ──────── */}
+              <div className="relative mt-4 pt-3 border-t border-white/[0.05] flex items-center justify-between text-[12px]">
+                <div className="flex items-center gap-1">
+                  {[
+                    { label: "Docs", href: "#docs" },
+                    { label: "Changelog", href: "#changelog" },
+                    { label: "GitHub", href: "#github" },
+                  ].map((l) => (
+                    <a
+                      key={l.label}
+                      href={l.href}
+                      className="px-2.5 py-1 rounded-md text-text-tertiary hover:text-text-primary hover:bg-white/[0.04] transition-colors"
+                    >
+                      {l.label}
+                    </a>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 text-text-tertiary/70 num-tabular">
+                  <span className="size-1.5 rounded-full bg-flux-green/80" />
+                  v2.4.2 shipped 2d ago
                 </div>
               </div>
             </div>
@@ -333,7 +401,7 @@ export function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.22, ease }}
-            className="md:hidden mx-4 mt-2 rounded-[18px] bg-ink/95 backdrop-blur-xl border border-ink-line p-2 shadow-[0_24px_64px_-16px_rgba(0,0,0,0.5)]"
+            className="md:hidden mt-2 rounded-[18px] bg-ink/95 backdrop-blur-xl border border-ink-line p-2 shadow-[0_24px_64px_-16px_rgba(0,0,0,0.5)]"
           >
             <ul className="flex flex-col gap-0.5">
               {links.map((link) => (

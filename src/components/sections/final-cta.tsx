@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/primitives/button";
-import { ArrowRight } from "@/components/primitives/icons";
 import { Block } from "@/components/primitives/block";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -10,15 +9,6 @@ const ease = [0.16, 1, 0.3, 1] as const;
 export function FinalCTA() {
   return (
     <section id="start" className="relative pt-32 pb-section overflow-hidden">
-      {/* Atmosphere — flowing gradient lines like the brand language, not a giant card */}
-      <div
-        className="absolute inset-0 -z-20 opacity-90"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 60% at 30% 60%, rgba(0,255,102,0.07), transparent 60%), radial-gradient(ellipse 60% 50% at 80% 40%, rgba(255,77,204,0.06), transparent 70%)",
-        }}
-        aria-hidden
-      />
       <div className="absolute inset-0 -z-10 bg-grid mask-fade-edges opacity-50" aria-hidden />
 
       {/* Two flowing horizontal bars passing through */}
@@ -65,7 +55,7 @@ export function FinalCTA() {
         </div>
       </div>
 
-      <div className="relative mx-auto max-w-[1200px] px-6">
+      <div className="relative mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px]">
         <motion.h2
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -88,8 +78,7 @@ export function FinalCTA() {
           className="mt-12 flex flex-wrap items-center gap-x-6 gap-y-4"
         >
           <Button variant="primary" size="lg" href="#start">
-            Start Building
-            <ArrowRight size={15} />
+            Start building
           </Button>
           <Button variant="ghost" size="lg" href="#docs">
             Read the docs →

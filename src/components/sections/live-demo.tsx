@@ -119,17 +119,9 @@ const events = [
 export function LiveDemo() {
   return (
     <section id="demo" className="relative py-section overflow-hidden">
-      <div
-        className="absolute inset-0 -z-10 opacity-80"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 50% at 50% 50%, rgba(34,211,238,0.05), transparent 70%)",
-        }}
-        aria-hidden
-      />
       <div className="absolute inset-0 -z-10 bg-grid mask-fade-edges opacity-50" aria-hidden />
 
-      <div className="mx-auto max-w-[1200px] px-6">
+      <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px]">
         <div className="text-center max-w-[640px] mx-auto">
           <motion.h2
             initial={{ opacity: 0, y: 12 }}

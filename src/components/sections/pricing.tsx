@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/primitives/button";
-import { ArrowRight, CheckIcon } from "@/components/primitives/icons";
+import { CheckIcon } from "@/components/primitives/icons";
 import { cn } from "@/lib/utils";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -68,7 +68,7 @@ const tiers: Tier[] = [
 export function Pricing() {
   return (
     <section id="pricing" className="py-section">
-      <div className="mx-auto max-w-[1200px] px-6">
+      <div className="mx-auto w-full max-w-[2240px] px-6 md:px-10 lg:px-20 xl:px-[160px]">
         {/* Header — left-aligned, manifesto */}
         <div className="grid lg:grid-cols-[1fr_auto] gap-8 items-end mb-16">
           <div className="max-w-[680px]">
@@ -151,12 +151,10 @@ export function Pricing() {
                     className="flex items-start gap-3 text-[14px] text-text-secondary"
                   >
                     <span className={cn(
-                      "mt-[3px] inline-flex size-3.5 shrink-0 items-center justify-center rounded-[3px]",
-                      tier.highlight
-                        ? "bg-flux-green/20 text-flux-green"
-                        : "bg-ink-line text-text-secondary",
+                      "mt-[3px] shrink-0",
+                      tier.highlight ? "text-flux-green" : "text-text-tertiary",
                     )}>
-                      <CheckIcon size={9} />
+                      <CheckIcon size={12} />
                     </span>
                     {f}
                   </li>
@@ -172,7 +170,6 @@ export function Pricing() {
                   href="#start"
                 >
                   {tier.cta}
-                  <ArrowRight size={14} />
                 </Button>
               </div>
             </div>

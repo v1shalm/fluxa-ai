@@ -14,19 +14,21 @@ import { FinalCTA } from "@/components/sections/final-cta";
 export default function Home() {
   return (
     <div className="relative min-h-screen bg-ink">
-      {/* Global Grain/Noise */}
+      {/* Global grain — tasteful, single-pass texture across the dark surface */}
       <div className="noise-overlay" aria-hidden />
 
-      {/* Persistent Background Grid */}
+      {/* Background grid — restrained, lets the panels do the talking */}
       <div className="fixed inset-0 bg-grid opacity-[0.4] pointer-events-none -z-20" aria-hidden />
 
-      {/* Atmospheric Glows */}
-      <div 
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 pointer-events-none opacity-40"
+      {/* Single, neutral top wash — replaces the AI-stack of three colored
+          radial gradients. Just enough to separate the hero from the void. */}
+      <div
+        className="fixed top-0 inset-x-0 h-[60vh] -z-10 pointer-events-none"
         style={{
-          background: "radial-gradient(circle at 50% 0%, rgba(34,211,238,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 40%, rgba(168,85,247,0.05) 0%, transparent 40%), radial-gradient(circle at 20% 70%, rgba(0,255,102,0.05) 0%, transparent 40%)"
+          background:
+            "radial-gradient(80% 100% at 50% -20%, rgba(255,255,255,0.035), transparent 70%)",
         }}
-        aria-hidden 
+        aria-hidden
       />
 
       <Navbar />

@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/primitives/button";
-import { ArrowRight, PlayIcon } from "@/components/primitives/icons";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -135,6 +134,24 @@ const CLUSTER_RIGHT = panelCenters[panels.length - 1] + PANEL_W / 2;
 const LINE_X1 = 0;
 const LINE_X2 = VB_W;
 
+// ── Pulse choreography ────────────────────────────────────────────────
+// One continuous loop. Within a cycle:
+//   [0, DRAW_END]      — pulse moves L→R, line is *drawn behind it* (no
+//                        line at rest). Each panel's center node flares
+//                        and its stroke brightens the moment the pulse
+//                        reaches it; brightness then settles to a glow
+//                        until end of draw phase.
+//   [DRAW_END, 1]      — line erases from the left (trailing edge sweeps
+//                        in), brightenings fade out, ready to redraw.
+const CYCLE_DURATION = 4.6;     // total cycle, seconds
+const DRAW_END       = 0.62;    // fraction of cycle spent drawing (≈ 2.85s)
+const PULSE_DELAY    = 0.8;     // intro silence before first sweep
+const BRIGHT_WINDOW  = 0.035;   // half-width of the panel "flash" in cycle progress
+
+// Normalized cycle-time at which the moving head is at panel i's center.
+// Pulse traverses LINE_X1 → LINE_X2 over [0, DRAW_END] of the cycle.
+const arrivalProgress = (i: number) => DRAW_END * (panelCenters[i] / VB_W);
+
 function PipelineCanvas() {
   return (
     <div className="relative w-full" style={{ aspectRatio: `${VB_W} / ${VB_H}` }}>
@@ -189,6 +206,13 @@ function PipelineCanvas() {
             </feMerge>
           </filter>
 
+          {/* Horizontal "swell" — the line is thin in general, but right at
+              the comet position a horizontal lens-flare blur makes it appear
+              thicker. stdDeviation x=42 / y=4 gives a wide, low oval glow. */}
+          <filter id="cometSwell" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="42 4" />
+          </filter>
+
           {/* Frosted noise — fine speckle for the glass-tile texture */}
           <filter id="frostGrain" x="0%" y="0%" width="100%" height="100%">
             <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" seed="3" />
@@ -204,35 +228,129 @@ function PipelineCanvas() {
           </pattern>
         </defs>
 
-        {/* ── CENTER FLOW LINE — full-width, fading to transparent on both edges ── */}
-        <g mask="url(#lineFadeMask)">
-          <motion.line
-            x1={LINE_X1}
-            y1={AXIS_Y}
-            x2={LINE_X2}
-            y2={AXIS_Y}
-            stroke="url(#flowGradient)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 1.4, delay: 0.2, ease }}
-          />
+        {/* ── INPUT / OUTPUT ANCHORS — sit just outside the cluster, off the line.
+             Geometric port markers, no glow trickery. They breath in step with
+             the wave: input flares at cycle start, output flares as the head arrives. */}
+        {(() => {
+          const inX  = CLUSTER_LEFT - 70;
+          const outX = CLUSTER_RIGHT + 70;
+          const firstStroke = panels[0].stroke;
+          const lastStroke  = panels[panels.length - 1].stroke;
+          return (
+            <>
+              {/* Input port */}
+              <g>
+                {/* short connector tail toward the cluster */}
+                <line
+                  x1={inX + 8}
+                  y1={AXIS_Y}
+                  x2={CLUSTER_LEFT}
+                  y2={AXIS_Y}
+                  stroke={firstStroke}
+                  strokeWidth="1"
+                  opacity="0.25"
+                />
+                {/* port square — open frame, no fill */}
+                <rect
+                  x={inX - 6}
+                  y={AXIS_Y - 6}
+                  width="12"
+                  height="12"
+                  rx="2"
+                  fill="none"
+                  stroke={firstStroke}
+                  strokeWidth="1.25"
+                  opacity="0.65"
+                />
+                {/* port arrival flare — pulses as the wave is "born" */}
+                <motion.rect
+                  x={inX - 6}
+                  y={AXIS_Y - 6}
+                  width="12"
+                  height="12"
+                  rx="2"
+                  fill={firstStroke}
+                  opacity="0"
+                  animate={{ opacity: [0, 0, 0.9, 0.5, 0.5, 0] }}
+                  transition={{
+                    duration: CYCLE_DURATION,
+                    repeat: Infinity,
+                    ease: "easeOut",
+                    delay: PULSE_DELAY,
+                    times: [0, 0.001, 0.04, 0.08, DRAW_END * 0.97, 1],
+                  }}
+                  style={{ filter: `drop-shadow(0 0 10px ${firstStroke})` }}
+                />
+                {/* label */}
+                <text
+                  x={inX}
+                  y={AXIS_Y + 28}
+                  textAnchor="middle"
+                  fontSize="11"
+                  letterSpacing="0.18em"
+                  fill="rgba(255,255,255,0.42)"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                >
+                  INPUT
+                </text>
+              </g>
 
-          {/* Traveling pulse — bright dot sweeping left → right along the line */}
-          <motion.circle
-            r="5"
-            cy={AXIS_Y}
-            fill="white"
-            initial={{ cx: LINE_X1, opacity: 0 }}
-            animate={{ cx: LINE_X2, opacity: [0, 1, 1, 0] }}
-            transition={{
-              cx: { duration: 4.2, repeat: Infinity, ease: "linear", delay: 1.4 },
-              opacity: { duration: 4.2, repeat: Infinity, ease: "linear", delay: 1.4, times: [0, 0.08, 0.92, 1] },
-            }}
-            style={{ filter: "drop-shadow(0 0 8px white)" }}
-          />
-        </g>
+              {/* Output port */}
+              <g>
+                <line
+                  x1={CLUSTER_RIGHT}
+                  y1={AXIS_Y}
+                  x2={outX - 8}
+                  y2={AXIS_Y}
+                  stroke={lastStroke}
+                  strokeWidth="1"
+                  opacity="0.25"
+                />
+                <rect
+                  x={outX - 6}
+                  y={AXIS_Y - 6}
+                  width="12"
+                  height="12"
+                  rx="2"
+                  fill="none"
+                  stroke={lastStroke}
+                  strokeWidth="1.25"
+                  opacity="0.65"
+                />
+                {/* fires as the head arrives at the right edge */}
+                <motion.rect
+                  x={outX - 6}
+                  y={AXIS_Y - 6}
+                  width="12"
+                  height="12"
+                  rx="2"
+                  fill={lastStroke}
+                  opacity="0"
+                  animate={{ opacity: [0, 0, 0.9, 0.4, 0] }}
+                  transition={{
+                    duration: CYCLE_DURATION,
+                    repeat: Infinity,
+                    ease: "easeOut",
+                    delay: PULSE_DELAY,
+                    times: [0, DRAW_END - 0.04, DRAW_END, DRAW_END + 0.06, 1],
+                  }}
+                  style={{ filter: `drop-shadow(0 0 10px ${lastStroke})` }}
+                />
+                <text
+                  x={outX}
+                  y={AXIS_Y + 28}
+                  textAnchor="middle"
+                  fontSize="11"
+                  letterSpacing="0.18em"
+                  fill="rgba(255,255,255,0.42)"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                >
+                  OUTPUT
+                </text>
+              </g>
+            </>
+          );
+        })()}
 
         {/* ── PANELS (drawn back-to-front: rightmost/purple is at the back of the stack,
              leftmost/cyan sits on top — pink overlaps purple, etc.) ── */}
@@ -271,10 +389,131 @@ function PipelineCanvas() {
           );
         })}
 
+        {/* ── PER-PANEL BRIGHTEN — each card flares the moment the head passes
+             its center, then settles to a steady mid-glow until end-of-draw,
+             then fades during the erase phase. The result reads as the line
+             "switching panels on" one by one as it threads through. ───── */}
+        {panels.map((_, idx) => {
+          const i = panels.length - 1 - idx;
+          const p = panels[i];
+          const d = panelPath(panelCenters[i], PANEL_SCALES[i], PANEL_Y_OFFSETS[i]);
+          const ap = arrivalProgress(i);
+          const t1 = Math.max(0.001, ap - BRIGHT_WINDOW);
+          const t2 = Math.min(DRAW_END - 0.001, ap + BRIGHT_WINDOW);
+          return (
+            <motion.path
+              key={`brighten${i}`}
+              d={d}
+              fill="none"
+              stroke={p.stroke}
+              strokeWidth={PANEL_STROKE + 1.5}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0, 1, 0.55, 0.55, 0] }}
+              transition={{
+                duration: CYCLE_DURATION,
+                repeat: Infinity,
+                ease: "easeOut",
+                delay: PULSE_DELAY,
+                times: [0, t1, ap, t2, DRAW_END * 0.97, 1],
+              }}
+              style={{ filter: `drop-shadow(0 0 18px ${p.stroke}) drop-shadow(0 0 36px ${p.stroke}aa)` }}
+              pointerEvents="none"
+            />
+          );
+        })}
+
+        {/* ── CENTER FLOW LINE + COMET ─────────────────────────────────────
+            Drawn AFTER the panels so the line visibly threads THROUGH each
+            tile (rather than passing behind them). The line itself is a thin
+            1.5px stroke; a horizontal swell layer + a bright core circle
+            ride the comet's leading edge so the line *appears* thicker right
+            where the comet is, thin everywhere else.
+
+            One uninterrupted cycle:
+              [0,    DRAW_END]  pathLength 0→1   line draws as comet sweeps L→R
+              [DRAW_END, 1]     pathLength 1→0   line shrinks back from the right
+        */}
+        {(() => {
+          // ALL three line-related animations share ONE timeline so a single
+          // `repeat: Infinity` covers the whole loop. (Per-property transition
+          // overrides — `transition.opacity = {...}` — silently DROP the parent
+          // `repeat` in framer-motion, which is why the line vanished after
+          // the first cycle. One unified `transition` avoids the whole class.)
+          const SHARED_TIMES = [0, 0.04, DRAW_END, 1] as const;
+          const SHARED = {
+            duration: CYCLE_DURATION,
+            repeat: Infinity,
+            ease: "linear" as const,
+            delay: PULSE_DELAY,
+            times: SHARED_TIMES as unknown as number[],
+          };
+          // Approximate cx at t=0.04 along the linear comet path (0 → VB_W
+          // over [0, DRAW_END]). Any small value works; exact-linear keeps
+          // motion smooth across the keyframe at t=0.04.
+          const CX_EARLY = LINE_X1 + (0.04 / DRAW_END) * (LINE_X2 - LINE_X1);
+          return (
+            <g mask="url(#lineFadeMask)">
+              {/* Thin gradient base line. Draws 0→1 during draw phase, then
+                  HOLDS at full length and fades out via opacity. Loop restarts
+                  from pathLength=0 / opacity=0 — no reverse erase. */}
+              <motion.path
+                d={`M ${LINE_X1} ${AXIS_Y} L ${LINE_X2} ${AXIS_Y}`}
+                fill="none"
+                stroke="url(#flowGradient)"
+                strokeWidth={2}
+                strokeLinecap="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{
+                  pathLength: [0, 0, 1, 1],
+                  opacity:    [0, 1, 1, 0],
+                }}
+                transition={SHARED}
+                style={{ filter: "drop-shadow(0 0 6px rgba(255,255,255,0.25))" }}
+              />
+
+              {/* Horizontal swell — small dot widely blurred into a horizontal
+                  lens-flare via the cometSwell filter. Rides the leading edge
+                  so the line looks dramatically thicker right at the comet,
+                  and thin everywhere else. */}
+              <motion.circle
+                r={4}
+                cy={AXIS_Y}
+                fill="white"
+                filter="url(#cometSwell)"
+                initial={{ cx: LINE_X1, opacity: 0 }}
+                animate={{
+                  cx:      [LINE_X1, CX_EARLY, LINE_X2, LINE_X2],
+                  opacity: [0, 0.75, 0.75, 0],
+                }}
+                transition={SHARED}
+              />
+
+              {/* Bright core — the visible head of the wave */}
+              <motion.circle
+                r={5}
+                cy={AXIS_Y}
+                fill="white"
+                initial={{ cx: LINE_X1, opacity: 0 }}
+                animate={{
+                  cx:      [LINE_X1, CX_EARLY, LINE_X2, LINE_X2],
+                  opacity: [0, 1, 1, 0],
+                }}
+                transition={SHARED}
+                style={{ filter: "drop-shadow(0 0 10px white) drop-shadow(0 0 22px rgba(255,255,255,0.55))" }}
+              />
+            </g>
+          );
+        })()}
+
         {/* ── PER-PANEL CENTER NODES — pulse on the flow line ─────────── */}
         {panels.map((p, i) => {
           const { cx, cy } = panelCenterPoint(i);
           const stagger = i * 0.18;
+          const ap = arrivalProgress(i);
+          const t1 = Math.max(0.001, ap - BRIGHT_WINDOW);
+          const t2 = Math.min(DRAW_END - 0.001, ap + BRIGHT_WINDOW);
           return (
             <g key={`node${i}`}>
               {/* Breathing halo */}
@@ -299,6 +538,26 @@ function PipelineCanvas() {
                 transition={{ duration: 0.5, delay: 0.7 + i * 0.07, ease }}
                 style={{ transformOrigin: `${cx}px ${cy}px` }}
               />
+              {/* Arrival flare — node bursts as the pulse threads through it,
+                  then settles to an elevated glow for the rest of the draw. */}
+              <motion.circle
+                cx={cx}
+                cy={cy}
+                fill={p.stroke}
+                filter="url(#nodeGlow)"
+                initial={{ r: 6, opacity: 0 }}
+                animate={{
+                  r:       [6, 6, 16, 9, 9, 6],
+                  opacity: [0, 0, 1, 0.55, 0.55, 0],
+                }}
+                transition={{
+                  duration: CYCLE_DURATION,
+                  repeat: Infinity,
+                  ease: "easeOut",
+                  delay: PULSE_DELAY,
+                  times: [0, t1, ap, t2, DRAW_END * 0.97, 1],
+                }}
+              />
               {/* Bright center pip */}
               <circle cx={cx} cy={cy} r="2" fill="#FFFFFF" opacity="0.9" />
             </g>
@@ -317,8 +576,8 @@ export function Hero() {
       id="top"
       className="relative pt-[140px] pb-2xl overflow-hidden"
     >
-      <div className="mx-auto max-w-[1200px] px-6">
-        <div className="grid lg:grid-cols-[1.4fr_auto] gap-md lg:gap-xl items-start">
+      <div className="mx-auto w-full max-w-[1680px] px-6 md:px-10 lg:px-20 xl:px-[120px]">
+        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-md lg:gap-xl items-start">
           <div>
             <motion.h1
               initial={{ opacity: 0 }}
@@ -340,37 +599,43 @@ export function Hero() {
                 transition={{ duration: 0.7, delay: 0.28, ease }}
                 className="block"
               >
-                for <span className="text-flux-green">AI in production.</span>
+                for <span className="text-flux-green">LLM workflows</span>
               </motion.span>
             </motion.h1>
+          </div>
 
+          <div className="flex flex-col gap-8 lg:mt-4">
             <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.45, ease }}
-              className="mt-md max-w-[520px] text-lg text-text-secondary text-pretty"
+              className="max-w-[480px] text-lg text-text-secondary text-pretty"
             >
               Wire LLMs, tools, and data on a typed canvas. Deploy as an
-              observable API - agents, RAG, document parsing, support routing
-              - from one workflow file. No notebooks, no rewrites.
+              observable API from one workflow file — no notebooks, no rewrites.
             </motion.p>
-          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.5, ease }}
-            className="flex flex-wrap items-center gap-3 lg:mt-md"
-          >
-            <Button variant="primary" size="lg" href="#start">
-              Start Building
-              <ArrowRight size={15} />
-            </Button>
-            <Button variant="secondary" size="lg" href="#demo">
-              <PlayIcon size={11} className="-ml-0.5 translate-x-[1px]" />
-              View Demo
-            </Button>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.5, ease }}
+              className="flex flex-wrap items-center gap-3"
+            >
+              <Button variant="primary" size="lg" href="#start">
+                Start building
+              </Button>
+              <Button variant="secondary" size="lg" href="#demo" className="group">
+                <span
+                  className="relative inline-flex size-1.5 mr-1"
+                  aria-hidden
+                >
+                  <span className="absolute inset-0 rounded-full bg-flux-green/40 animate-ping" />
+                  <span className="relative size-1.5 rounded-full bg-flux-green" />
+                </span>
+                Watch the demo
+              </Button>
+            </motion.div>
+          </div>
         </div>
 
         <motion.div
